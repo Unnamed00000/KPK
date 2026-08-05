@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KPK VINDUER OG DØR</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-label="Данные работника">
+        <div>
+          <p class="eyebrow" data-i18n="workSheet">Рабочий лист</p>
+          <h1>KPK VINDUER OG DØR</h1>
+        </div>
+        <div class="topbar-actions">
+          <label class="language-control">
+            <span data-i18n="language">Sprog</span>
+            <select id="languageSelect">
+              <option value="da">Dansk</option>
+              <option value="en">English</option>
+              <option value="ar">العربية</option>
+              <option value="ru">Русский</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="calendar-panel" id="calendarView" aria-label="Kalender">
+        <div class="section-head">
+          <div>
+            <h2 data-i18n="calendar">Kalender</h2>
+            <p class="calendar-hint" data-i18n="calendarHint">Vælg en dato for at udfylde arbejdssedlen.</p>
+          </div>
+          <div class="calendar-nav">
+            <button class="icon-button" id="prevMonthButton" type="button" title="Forrige måned" data-i18n-title="previousMonth">‹</button>
+            <strong id="calendarTitle"></strong>
+            <button class="icon-button" id="nextMonthButton" type="button" title="Næste måned" data-i18n-title="nextMonth">›</button>
+          </div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </section>
+
+      <div class="editor-view" id="editorView" hidden>
+      <section class="editor-toolbar">
+        <button class="text-button muted" id="backToCalendarButton" type="button" data-i18n="backToCalendar">Kalender</button>
+        <strong id="selectedDateLabel"></strong>
+      </section>
+
+      <section class="worker-panel" aria-label="Основная информация">
+        <label class="full-name-field">
+          <span data-i18n="fullName">Имя и фамилия</span>
+          <input id="firstName" autocomplete="name" placeholder="Например, Ahmed Ali" data-i18n-placeholder="fullNamePlaceholder">
+        </label>
+        <label>
+          <span data-i18n="employeeNumber">Личный номер</span>
+          <input id="employeeNumber" inputmode="numeric" placeholder="Номер работника" data-i18n-placeholder="employeeNumberPlaceholder">
+        </label>
+        <label>
+          <span data-i18n="week">Неделя</span>
+          <input id="weekNumber" type="number" min="1" max="53">
+        </label>
+        <label>
+          <span data-i18n="day">День</span>
+          <select id="dayNumber">
+            <option value="1">1 - Понедельник</option>
+            <option value="2">2 - Вторник</option>
+            <option value="3">3 - Среда</option>
+            <option value="4">4 - Четверг</option>
+            <option value="5">5 - Пятница</option>
+          </select>
+        </label>
+        <input id="defaultPlace" type="hidden" value="440">
+      </section>
+
+      <section class="table-section" aria-label="Работы за день">
+        <div class="section-head">
+          <h2 data-i18n="seriesAndTime">Серии и время</h2>
+          <div class="row-actions">
+            <button class="text-button muted" id="meetingButton" type="button" data-i18n="addMeeting">+ Встреча 114</button>
+            <button class="text-button" id="addRowButton" type="button" data-i18n="addSeries">+ Серия</button>
+          </div>
+        </div>
+
+        <div class="work-table" role="table" aria-label="Список работ">
+          <div class="work-row header" role="row">
+            <span data-i18n="place">Место</span>
+            <span data-i18n="series">Серия</span>
+            <span data-i18n="from">С</span>
+            <span data-i18n="to">До</span>
+            <span data-i18n="time">Время</span>
+            <span></span>
+            <span></span>
+          </div>
+          <div id="rows"></div>
+        </div>
+      </section>
+
+      <section class="summary-strip" aria-label="Итоги дня">
+        <article>
+          <span data-i18n="shift">Arbejdstid</span>
+          <strong id="shiftWindow">06:00-15:05</strong>
+        </article>
+        <article class="summary-total">
+          <span data-i18n="counted">I alt</span>
+          <strong id="totalTime">0,00</strong>
+        </article>
+      </section>
+
+      <section class="print-sheet" aria-label="Готовый текст">
+        <div class="section-head">
+          <h2 data-i18n="readyText">Как записать на листок</h2>
+          <div class="print-actions">
+            <span id="copyStatus" role="status"></span>
+            <button class="icon-button" id="printButton" type="button" title="Печать" data-i18n-title="print">⎙</button>
+            <button class="text-button" id="copyButton" type="button" data-i18n="copy">Копировать</button>
+          </div>
+        </div>
+        <pre id="sheetPreview"></pre>
+      </section>
+      </div>
+    </main>
+
+    <template id="rowTemplate">
+      <div class="work-row" role="row">
+        <label>
+          <span data-i18n="place">Место</span>
+          <input class="place-input" inputmode="numeric" placeholder="440">
+        </label>
+        <label>
+          <span data-i18n="series">Серия</span>
+          <input class="series-input" placeholder="Номер серии" data-i18n-placeholder="seriesPlaceholder">
+        </label>
+        <label>
+          <span data-i18n="from">С</span>
+          <input class="start-input" type="time" step="300">
+        </label>
+        <label>
+          <span data-i18n="to">До</span>
+          <input class="end-input" type="time" step="300">
+        </label>
+        <output class="duration-output">0,00</output>
+        <div class="move-controls" aria-label="Переместить строку" data-i18n-aria-label="moveRow">
+          <button class="move-button move-up" type="button" title="Вверх" data-i18n-title="moveUp">↑</button>
+          <button class="move-button move-down" type="button" title="Вниз" data-i18n-title="moveDown">↓</button>
+        </div>
+        <button class="remove-button" type="button" title="Удалить строку" data-i18n-title="deleteRow">×</button>
+      </div>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
