@@ -478,12 +478,14 @@ button:focus-visible {
   gap: 14px;
   margin-top: 14px;
   padding: 14px 16px;
+  overflow-x: auto;
   border-radius: 8px;
 }
 
 .summary-strip article {
   display: flex;
   align-items: baseline;
+  flex: 0 0 auto;
   gap: 10px;
   min-width: 0;
 }
