@@ -16,5 +16,8 @@ Features:
 - Monday to Thursday work time `06:00-15:05`, Friday `06:00-15:00`;
 - time shown in hundredths of an hour, for example `45` minutes is `0,75`;
 - copy and print buttons for the final text.
+- PWA support with installable app metadata, offline cache, and app icons.
 
 All data is saved locally in the current browser with `localStorage`.
+
+PWA installation requires opening the app from `https://` or `localhost`; service workers do not run from a direct `file://` URL.

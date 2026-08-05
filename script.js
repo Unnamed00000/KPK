@@ -34,7 +34,7 @@ const I18N = {
     moveUp: "Вверх",
     moveDown: "Вниз",
     deleteRow: "Удалить строку",
-    fullNamePlaceholder: "Например, Ahmed Ali",
+    fullNamePlaceholder: "Имя и фамилия",
     firstNamePlaceholder: "Например, Ahmed",
     lastNamePlaceholder: "Например, Ali",
     employeeNumberPlaceholder: "Номер работника",
@@ -64,7 +64,7 @@ const I18N = {
     backToCalendar: "Kalender",
     copy: "Kopier",
     print: "Print",
-    fullName: "Navn",
+    fullName: "Navn og efternavn",
     firstName: "Fornavn",
     lastName: "Efternavn",
     employeeNumber: "Medarbejdernummer",
@@ -89,7 +89,7 @@ const I18N = {
     moveUp: "Op",
     moveDown: "Ned",
     deleteRow: "Slet række",
-    fullNamePlaceholder: "Fx Ahmed Ali",
+    fullNamePlaceholder: "Navn og efternavn",
     firstNamePlaceholder: "Fx Ahmed",
     lastNamePlaceholder: "Fx Ali",
     employeeNumberPlaceholder: "Medarbejdernummer",
@@ -144,7 +144,7 @@ const I18N = {
     moveUp: "Up",
     moveDown: "Down",
     deleteRow: "Delete row",
-    fullNamePlaceholder: "For example, Ahmed Ali",
+    fullNamePlaceholder: "Name and surname",
     firstNamePlaceholder: "For example, Ahmed",
     lastNamePlaceholder: "For example, Ali",
     employeeNumberPlaceholder: "Employee number",
@@ -199,7 +199,7 @@ const I18N = {
     moveUp: "أعلى",
     moveDown: "أسفل",
     deleteRow: "حذف الصف",
-    fullNamePlaceholder: "مثلا Ahmed Ali",
+    fullNamePlaceholder: "الاسم واسم العائلة",
     firstNamePlaceholder: "مثلا Ahmed",
     lastNamePlaceholder: "مثلا Ali",
     employeeNumberPlaceholder: "رقم الموظف",
@@ -704,9 +704,6 @@ function attachRowEvents(row) {
   row.remove.addEventListener("click", () => {
     row.element.remove();
     state.rows = state.rows.filter((item) => item !== row);
-    if (state.rows.length === 0) {
-      addRow();
-    }
     updateTotals();
   });
 
@@ -864,9 +861,6 @@ function loadSavedState(dateKey) {
 
   if (savedRows.length > 0) {
     savedRows.forEach(addRow);
-  } else {
-    addRow({ place: "440", start: "06:00", end: "10:45" });
-    addRow({ place: "440", start: "10:45", end: getShiftEnd() });
   }
 
   updateTotals();
@@ -967,3 +961,9 @@ state.language = DEFAULT_LANGUAGE;
 elements.languageSelect.value = state.language;
 applyLanguage();
 showCalendar();
+
+if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}
