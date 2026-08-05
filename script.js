@@ -226,6 +226,7 @@ const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
 const PROFILE_STORAGE_KEY = "kpk-work-sheet-profile";
+const VIEW_STORAGE_KEY = "kpk-work-sheet-view";
 const KNOWN_SHIFT_ENDS = ["15:00", "15:05"];
 const DEFAULT_PAUSES = [
   { start: "09:00", end: "09:20" },
@@ -346,6 +347,18 @@ function saveLanguagePreference() {
     ...profile,
     language: state.language
   }));
+}
+
+function saveView(view) {
+  localStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({
+    view,
+    selectedDate: state.selectedDate,
+    calendarMonth: formatDateKey(state.calendarMonth)
+  }));
+}
+
+function getSavedView() {
+  return readJsonStorage(VIEW_STORAGE_KEY);
 }
 
 function hasSavedEntry(dateKey) {
@@ -514,6 +527,7 @@ function updateSelectedDateLabel() {
 function showCalendar() {
   elements.calendarView.hidden = false;
   elements.editorView.hidden = true;
+  saveView("calendar");
   renderCalendar();
 }
 
@@ -521,6 +535,7 @@ function showEditor() {
   elements.calendarView.hidden = true;
   elements.editorView.hidden = false;
   updateSelectedDateLabel();
+  saveView("editor");
 }
 
 function parseTimeToMinutes(value) {
@@ -883,6 +898,8 @@ function loadSavedState(dateKey) {
 
 function openEditor(dateKey) {
   state.selectedDate = dateKey;
+  const selectedDate = parseDateKey(dateKey);
+  state.calendarMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
   loadSavedState(dateKey);
   showEditor();
 }
@@ -977,7 +994,19 @@ const initialProfile = getProfile();
 state.language = I18N[initialProfile.language] ? initialProfile.language : DEFAULT_LANGUAGE;
 elements.languageSelect.value = state.language;
 applyLanguage();
-showCalendar();
+const savedView = getSavedView();
+if (savedView.calendarMonth) {
+  const savedMonth = parseDateKey(savedView.calendarMonth);
+  if (!Number.isNaN(savedMonth.getTime())) {
+    state.calendarMonth = new Date(savedMonth.getFullYear(), savedMonth.getMonth(), 1);
+  }
+}
+
+if (savedView.view === "editor" && savedView.selectedDate) {
+  openEditor(savedView.selectedDate);
+} else {
+  showCalendar();
+}
 
 if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
   window.addEventListener("load", () => {

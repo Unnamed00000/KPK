@@ -528,33 +528,12 @@ pre {
     font-size: 1.22rem;
   }
 
-  .work-row {
-    grid-template-columns: 1fr 1fr;
-    padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
+  .table-section {
+    overflow-x: auto;
   }
 
-  .work-row.header {
-    display: none;
-  }
-
-  .work-row label span {
-    display: block;
-  }
-
-  .duration-output {
-    justify-content: start;
-    padding-left: 10px;
-  }
-
-  .remove-button {
-    justify-self: end;
-  }
-
-  .move-controls {
-    justify-self: start;
+  .work-table {
+    min-width: 760px;
   }
 }
 
