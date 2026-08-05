@@ -524,6 +524,11 @@ button:focus-visible {
   gap: 8px;
 }
 
+#rows {
+  display: grid;
+  gap: 8px;
+}
+
 .work-row {
   display: grid;
   grid-template-columns: 0.85fr 1.35fr 0.9fr 0.9fr 88px 74px 40px;
@@ -534,7 +539,8 @@ button:focus-visible {
 
 .work-row.header {
   min-height: auto;
-  padding: 0 48px 0 0;
+  padding: 0;
+  align-items: center;
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 700;
