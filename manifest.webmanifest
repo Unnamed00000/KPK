@@ -1,7 +1,7 @@
 {
-  "name": "KPK Arbejdsseddel",
+  "name": "KPK Døre og Vinduer",
   "short_name": "KPK",
-  "description": "Lokal arbejdsseddel med kalender, serier, tid og udskrivning.",
+  "description": "KPK Døre og Vinduer arbejdsseddel med kalender, serier, tid og udskrivning.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="KPK">
-  <rect width="512" height="512" rx="96" fill="#1f7a55"/>
-  <rect x="84" y="96" width="344" height="320" rx="38" fill="#ffffff"/>
-  <path d="M120 178h272" stroke="#d7dfda" stroke-width="24" stroke-linecap="round"/>
-  <path d="M146 244h88M146 306h220M146 360h158" stroke="#1f2a25" stroke-width="26" stroke-linecap="round"/>
-  <text x="256" y="158" fill="#1f7a55" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="800" text-anchor="middle">KPK</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="KPK Døre og Vinduer">
+  <rect width="512" height="512" rx="92" fill="#0061a8"/>
+  <path d="M76 104c0-30 24-54 54-54h252c30 0 54 24 54 54v304c0 30-24 54-54 54H130c-30 0-54-24-54-54V104Z" fill="#006fba"/>
+  <path d="M126 94h260c16 0 30 13 30 30v260c0 16-14 30-30 30H126c-16 0-30-14-30-30V124c0-17 14-30 30-30Z" fill="#0074bd"/>
+  <text x="256" y="270" fill="#fff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="138" font-weight="900" text-anchor="middle" letter-spacing="2">KPK</text>
+  <text x="256" y="356" fill="#fff" font-family="Arial Narrow, Arial, Helvetica, sans-serif" font-size="42" font-weight="800" text-anchor="middle" letter-spacing="5">DØRE OG VINDUER</text>
 </svg>
