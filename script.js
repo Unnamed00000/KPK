@@ -59,6 +59,7 @@ const I18N = {
     aboutText: "Локальный рабочий лист KPK с календарем, сериями, временем, печатью и копированием.",
     creator: "Создатель программы",
     refresh: "Обновить",
+    forceRefresh: "Force обновление",
     version: "Версия",
     dayNames: {
       1: "Понедельник",
@@ -128,6 +129,7 @@ const I18N = {
     aboutText: "Lokal KPK arbejdsseddel med kalender, serier, tid, print og kopi.",
     creator: "Skaber",
     refresh: "Opdater",
+    forceRefresh: "Force opdatering",
     version: "Version",
     dayNames: {
       1: "Mandag",
@@ -197,6 +199,7 @@ const I18N = {
     aboutText: "Local KPK work sheet with calendar, series, time, print, and copy.",
     creator: "Creator",
     refresh: "Refresh",
+    forceRefresh: "Force refresh",
     version: "Version",
     dayNames: {
       1: "Monday",
@@ -266,6 +269,7 @@ const I18N = {
     aboutText: "ورقة عمل KPK محلية مع التقويم والسلاسل والوقت والطباعة والنسخ.",
     creator: "منشئ البرنامج",
     refresh: "تحديث",
+    forceRefresh: "تحديث إجباري",
     version: "الإصدار",
     dayNames: {
       1: "الاثنين",
@@ -278,7 +282,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.1.3";
+const APP_VERSION = "1.1.4";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -336,6 +340,7 @@ const elements = {
   soundToggle: document.querySelector("#soundToggle"),
   themeToggle: document.querySelector("#themeToggle"),
   refreshButton: document.querySelector("#refreshButton"),
+  forceRefreshButton: document.querySelector("#forceRefreshButton"),
   appVersion: document.querySelector("#appVersion")
 };
 
@@ -452,6 +457,26 @@ async function refreshApp() {
   }
 
   window.location.reload();
+}
+
+async function forceRefreshApp() {
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    }
+
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    }
+  } catch {
+    // Force reload still continues if cache APIs are unavailable.
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("forceUpdate", String(Date.now()));
+  window.location.replace(url.toString());
 }
 
 function playFeedback() {
@@ -1285,6 +1310,12 @@ elements.refreshButton?.addEventListener("click", () => {
   saveSettings();
   playFeedback();
   refreshApp();
+});
+
+elements.forceRefreshButton?.addEventListener("click", () => {
+  saveSettings();
+  playFeedback();
+  forceRefreshApp();
 });
 
 if (elements.defaultPlace) {

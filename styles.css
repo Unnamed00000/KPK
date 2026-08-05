@@ -272,6 +272,11 @@ h2 {
   transform: translateX(26px);
 }
 
+.settings-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .settings-refresh {
   width: 100%;
 }
