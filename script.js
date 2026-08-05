@@ -59,6 +59,7 @@ const I18N = {
     aboutText: "Локальный рабочий лист KPK с календарем, сериями, временем, печатью и копированием.",
     creator: "Создатель программы",
     refresh: "Обновить",
+    version: "Версия",
     dayNames: {
       1: "Понедельник",
       2: "Вторник",
@@ -127,6 +128,7 @@ const I18N = {
     aboutText: "Lokal KPK arbejdsseddel med kalender, serier, tid, print og kopi.",
     creator: "Skaber",
     refresh: "Opdater",
+    version: "Version",
     dayNames: {
       1: "Mandag",
       2: "Tirsdag",
@@ -195,6 +197,7 @@ const I18N = {
     aboutText: "Local KPK work sheet with calendar, series, time, print, and copy.",
     creator: "Creator",
     refresh: "Refresh",
+    version: "Version",
     dayNames: {
       1: "Monday",
       2: "Tuesday",
@@ -263,6 +266,7 @@ const I18N = {
     aboutText: "ورقة عمل KPK محلية مع التقويم والسلاسل والوقت والطباعة والنسخ.",
     creator: "منشئ البرنامج",
     refresh: "تحديث",
+    version: "الإصدار",
     dayNames: {
       1: "الاثنين",
       2: "الثلاثاء",
@@ -274,6 +278,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
+const APP_VERSION = "1.1.0";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -330,7 +335,8 @@ const elements = {
   vibrationToggle: document.querySelector("#vibrationToggle"),
   soundToggle: document.querySelector("#soundToggle"),
   themeToggle: document.querySelector("#themeToggle"),
-  refreshButton: document.querySelector("#refreshButton")
+  refreshButton: document.querySelector("#refreshButton"),
+  appVersion: document.querySelector("#appVersion")
 };
 
 function getIsoWeek(date) {
@@ -426,6 +432,26 @@ function setSettingsPanelOpen(isOpen) {
 
   elements.settingsPanel.hidden = !isOpen;
   elements.settingsButton.setAttribute("aria-expanded", String(isOpen));
+  document.body.classList.toggle("modal-open", isOpen);
+
+  if (isOpen) {
+    elements.closeSettingsButton?.focus();
+  } else {
+    elements.settingsButton.focus();
+  }
+}
+
+async function refreshApp() {
+  try {
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.update()));
+    }
+  } catch {
+    // Reload still works when the app is opened as a local file.
+  }
+
+  window.location.reload();
 }
 
 function playFeedback() {
@@ -1121,6 +1147,20 @@ elements.closeSettingsButton?.addEventListener("click", () => {
   playFeedback();
 });
 
+elements.settingsPanel?.addEventListener("click", (event) => {
+  if (event.target === elements.settingsPanel) {
+    setSettingsPanelOpen(false);
+    playFeedback();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && elements.settingsPanel && !elements.settingsPanel.hidden) {
+    setSettingsPanelOpen(false);
+    playFeedback();
+  }
+});
+
 elements.vibrationToggle?.addEventListener("change", () => {
   state.vibration = elements.vibrationToggle.checked;
   saveSettings();
@@ -1143,7 +1183,7 @@ elements.themeToggle?.addEventListener("change", () => {
 elements.refreshButton?.addEventListener("click", () => {
   saveSettings();
   playFeedback();
-  window.location.reload();
+  refreshApp();
 });
 
 if (elements.defaultPlace) {
@@ -1188,6 +1228,9 @@ elements.printButton.addEventListener("click", () => {
 loadSettings();
 syncSettingsControls();
 applyTheme();
+if (elements.appVersion) {
+  elements.appVersion.textContent = `v${APP_VERSION}`;
+}
 applyLanguage();
 const savedView = getSavedView();
 if (savedView.calendarMonth) {
