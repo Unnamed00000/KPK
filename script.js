@@ -278,7 +278,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.1.2";
+const APP_VERSION = "1.1.3";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -782,6 +782,54 @@ function getPauseOverlapMinutes(start, end) {
   }, 0);
 }
 
+function getWindowOverlapMinutes(rowWindow, excludeWindow) {
+  if (!rowWindow || !excludeWindow) {
+    return null;
+  }
+
+  const start = Math.max(rowWindow.start, excludeWindow.start);
+  const end = Math.min(rowWindow.end, excludeWindow.end);
+  if (end <= start) {
+    return null;
+  }
+
+  return { start, end };
+}
+
+function getMergedOverlapMinutes(row, excludedWindows) {
+  const rowWindow = getTimeWindow(row.start.value, row.end.value);
+  if (!rowWindow) {
+    return 0;
+  }
+
+  const overlaps = excludedWindows
+    .map((window) => getWindowOverlapMinutes(rowWindow, window))
+    .filter(Boolean)
+    .sort((first, second) => first.start - second.start);
+
+  if (overlaps.length === 0) {
+    return 0;
+  }
+
+  const merged = [];
+  overlaps.forEach((window) => {
+    const previous = merged[merged.length - 1];
+    if (!previous || window.start > previous.end) {
+      merged.push({ ...window });
+      return;
+    }
+    previous.end = Math.max(previous.end, window.end);
+  });
+
+  return merged.reduce((sum, window) => sum + window.end - window.start, 0);
+}
+
+function getDefaultPauseWindows() {
+  return DEFAULT_PAUSES
+    .map((pause) => getTimeWindow(pause.start, pause.end))
+    .filter(Boolean);
+}
+
 function moveTimeAfterPause(value) {
   const minutes = parseTimeToMinutes(value);
   if (minutes === null) {
@@ -819,8 +867,23 @@ function getRowUnits(row) {
 
 function getRowMinutes(row) {
   const durationMinutes = getDurationMinutes(row.start.value, row.end.value);
-  const pauseMinutes = row.type === "pause" ? 0 : getPauseOverlapMinutes(row.start.value, row.end.value);
-  return Math.max(0, durationMinutes - pauseMinutes);
+  if (row.type === "pause") {
+    return durationMinutes;
+  }
+
+  const excludedWindows = getDefaultPauseWindows();
+  if (!isMeetingRow(row)) {
+    state.rows.forEach((item) => {
+      if (item !== row && isMeetingRow(item)) {
+        const meetingWindow = getTimeWindow(item.start.value, item.end.value);
+        if (meetingWindow) {
+          excludedWindows.push(meetingWindow);
+        }
+      }
+    });
+  }
+
+  return Math.max(0, durationMinutes - getMergedOverlapMinutes(row, excludedWindows));
 }
 
 function getRowPauseUnits(row) {
