@@ -21,7 +21,17 @@
           <img class="brand-logo" src="assets/kpk-logo.svg" alt="KPK Døre og Vinduer">
         </div>
         <div class="topbar-actions">
-          <label class="language-control">
+          <button class="settings-button" id="settingsButton" type="button" aria-expanded="false" aria-controls="settingsPanel" title="Indstillinger" data-i18n-title="settings">⚙</button>
+        </div>
+      </section>
+
+      <section class="settings-panel" id="settingsPanel" aria-label="Indstillinger" hidden>
+        <div class="section-head">
+          <h2 data-i18n="settings">Indstillinger</h2>
+          <button class="icon-button" id="closeSettingsButton" type="button" title="Luk" data-i18n-title="close">×</button>
+        </div>
+        <div class="settings-grid">
+          <label class="settings-field">
             <span data-i18n="language">Sprog</span>
             <select id="languageSelect">
               <option value="da">Dansk</option>
@@ -30,6 +40,45 @@
               <option value="ru">Русский</option>
             </select>
           </label>
+
+          <label class="settings-toggle">
+            <span>
+              <strong data-i18n="vibration">Vibration</strong>
+              <small data-i18n="vibrationHint">Kort vibration ved tryk.</small>
+            </span>
+            <input id="vibrationToggle" type="checkbox">
+            <span class="switch" aria-hidden="true"></span>
+          </label>
+
+          <label class="settings-toggle">
+            <span>
+              <strong data-i18n="sound">Lyd</strong>
+              <small data-i18n="soundHint">Diskret lyd ved handlinger.</small>
+            </span>
+            <input id="soundToggle" type="checkbox">
+            <span class="switch" aria-hidden="true"></span>
+          </label>
+
+          <label class="settings-toggle">
+            <span>
+              <strong data-i18n="darkTheme">Mørk tema</strong>
+              <small data-i18n="themeHint">Skift mellem lys og mørk visning.</small>
+            </span>
+            <input id="themeToggle" type="checkbox">
+            <span class="switch" aria-hidden="true"></span>
+          </label>
+
+          <article class="settings-info">
+            <h3 data-i18n="aboutProgram">Om programmet</h3>
+            <p data-i18n="aboutText">Lokal KPK arbejdsseddel med kalender, serier, tid, print og kopi.</p>
+          </article>
+
+          <article class="settings-info">
+            <h3 data-i18n="creator">Skaber</h3>
+            <p data-i18n="createdBy">Programmet er lavet af Adam Margoev</p>
+          </article>
+
+          <button class="text-button settings-refresh" id="refreshButton" type="button" data-i18n="refresh">Opdater</button>
         </div>
       </section>
 

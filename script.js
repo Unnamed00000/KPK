@@ -47,6 +47,18 @@ const I18N = {
     total: "Итого",
     copied: "Скопировано",
     copyFailed: "Не получилось скопировать",
+    settings: "Настройки",
+    close: "Закрыть",
+    vibration: "Вибрация",
+    vibrationHint: "Короткая вибрация при нажатиях.",
+    sound: "Звук",
+    soundHint: "Тихий звук при действиях.",
+    darkTheme: "Темная тема",
+    themeHint: "Переключение светлой и темной темы.",
+    aboutProgram: "О программе",
+    aboutText: "Локальный рабочий лист KPK с календарем, сериями, временем, печатью и копированием.",
+    creator: "Создатель программы",
+    refresh: "Обновить",
     dayNames: {
       1: "Понедельник",
       2: "Вторник",
@@ -103,6 +115,18 @@ const I18N = {
     total: "I alt",
     copied: "Kopieret",
     copyFailed: "Kunne ikke kopiere",
+    settings: "Indstillinger",
+    close: "Luk",
+    vibration: "Vibration",
+    vibrationHint: "Kort vibration ved tryk.",
+    sound: "Lyd",
+    soundHint: "Diskret lyd ved handlinger.",
+    darkTheme: "Mørkt tema",
+    themeHint: "Skift mellem lys og mørk visning.",
+    aboutProgram: "Om programmet",
+    aboutText: "Lokal KPK arbejdsseddel med kalender, serier, tid, print og kopi.",
+    creator: "Skaber",
+    refresh: "Opdater",
     dayNames: {
       1: "Mandag",
       2: "Tirsdag",
@@ -159,6 +183,18 @@ const I18N = {
     total: "Total",
     copied: "Copied",
     copyFailed: "Could not copy",
+    settings: "Settings",
+    close: "Close",
+    vibration: "Vibration",
+    vibrationHint: "Short vibration on taps.",
+    sound: "Sound",
+    soundHint: "Soft sound for actions.",
+    darkTheme: "Dark theme",
+    themeHint: "Switch between light and dark view.",
+    aboutProgram: "About",
+    aboutText: "Local KPK work sheet with calendar, series, time, print, and copy.",
+    creator: "Creator",
+    refresh: "Refresh",
     dayNames: {
       1: "Monday",
       2: "Tuesday",
@@ -215,6 +251,18 @@ const I18N = {
     total: "المجموع",
     copied: "تم النسخ",
     copyFailed: "تعذر النسخ",
+    settings: "الإعدادات",
+    close: "إغلاق",
+    vibration: "الاهتزاز",
+    vibrationHint: "اهتزاز قصير عند الضغط.",
+    sound: "الصوت",
+    soundHint: "صوت خفيف عند الإجراءات.",
+    darkTheme: "الوضع الداكن",
+    themeHint: "التبديل بين الوضع الفاتح والداكن.",
+    aboutProgram: "حول البرنامج",
+    aboutText: "ورقة عمل KPK محلية مع التقويم والسلاسل والوقت والطباعة والنسخ.",
+    creator: "منشئ البرنامج",
+    refresh: "تحديث",
     dayNames: {
       1: "الاثنين",
       2: "الثلاثاء",
@@ -231,6 +279,7 @@ const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
 const PROFILE_STORAGE_KEY = "kpk-work-sheet-profile";
 const VIEW_STORAGE_KEY = "kpk-work-sheet-view";
+const SETTINGS_STORAGE_KEY = "kpk-work-sheet-settings";
 const KNOWN_SHIFT_ENDS = ["15:00", "15:05"];
 const DEFAULT_PAUSES = [
   { start: "09:00", end: "09:20" },
@@ -242,6 +291,9 @@ const state = {
   dayNumber: getWorkDayNumber(new Date()),
   language: DEFAULT_LANGUAGE,
   languagePreferenceSet: false,
+  vibration: false,
+  sound: false,
+  theme: "light",
   selectedDate: "",
   calendarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   isLoading: false
@@ -255,6 +307,9 @@ const elements = {
   prevMonthButton: document.querySelector("#prevMonthButton"),
   nextMonthButton: document.querySelector("#nextMonthButton"),
   backToCalendarButton: document.querySelector("#backToCalendarButton"),
+  settingsPanel: document.querySelector("#settingsPanel"),
+  settingsButton: document.querySelector("#settingsButton"),
+  closeSettingsButton: document.querySelector("#closeSettingsButton"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   firstName: document.querySelector("#firstName"),
   employeeNumber: document.querySelector("#employeeNumber"),
@@ -271,7 +326,11 @@ const elements = {
   meetingButton: document.querySelector("#meetingButton"),
   copyButton: document.querySelector("#copyButton"),
   printButton: document.querySelector("#printButton"),
-  copyStatus: document.querySelector("#copyStatus")
+  copyStatus: document.querySelector("#copyStatus"),
+  vibrationToggle: document.querySelector("#vibrationToggle"),
+  soundToggle: document.querySelector("#soundToggle"),
+  themeToggle: document.querySelector("#themeToggle"),
+  refreshButton: document.querySelector("#refreshButton")
 };
 
 function getIsoWeek(date) {
@@ -318,6 +377,90 @@ function readJsonStorage(key) {
   }
 }
 
+function saveSettings() {
+  localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({
+    language: state.language,
+    vibration: state.vibration,
+    sound: state.sound,
+    theme: state.theme
+  }));
+}
+
+function loadSettings() {
+  const savedSettings = readJsonStorage(SETTINGS_STORAGE_KEY);
+  const savedProfile = getProfile();
+  const savedLanguage = savedSettings.language || savedProfile.language;
+
+  state.language = I18N[savedLanguage] ? savedLanguage : DEFAULT_LANGUAGE;
+  state.vibration = savedSettings.vibration === true;
+  state.sound = savedSettings.sound === true;
+  state.theme = savedSettings.theme === "dark" ? "dark" : "light";
+}
+
+function syncSettingsControls() {
+  if (elements.languageSelect) {
+    elements.languageSelect.value = state.language;
+  }
+  if (elements.vibrationToggle) {
+    elements.vibrationToggle.checked = state.vibration;
+  }
+  if (elements.soundToggle) {
+    elements.soundToggle.checked = state.sound;
+  }
+  if (elements.themeToggle) {
+    elements.themeToggle.checked = state.theme === "dark";
+  }
+}
+
+function applyTheme() {
+  document.documentElement.dataset.theme = state.theme;
+  const themeColor = state.theme === "dark" ? "#121a16" : "#1f7a55";
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeColor);
+  syncSettingsControls();
+}
+
+function setSettingsPanelOpen(isOpen) {
+  if (!elements.settingsPanel || !elements.settingsButton) {
+    return;
+  }
+
+  elements.settingsPanel.hidden = !isOpen;
+  elements.settingsButton.setAttribute("aria-expanded", String(isOpen));
+}
+
+function playFeedback() {
+  if (state.vibration && "vibrate" in navigator) {
+    navigator.vibrate(25);
+  }
+
+  if (!state.sound) {
+    return;
+  }
+
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      return;
+    }
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.value = 560;
+    gain.gain.value = 0.035;
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.addEventListener("ended", () => {
+      audioContext.close().catch(() => {});
+    });
+    oscillator.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.11);
+    oscillator.stop(audioContext.currentTime + 0.12);
+  } catch {
+    // Feedback is optional; older browsers can ignore it.
+  }
+}
+
 function getSavedEntry(dateKey) {
   const saved = readJsonStorage(getDateStorageKey(dateKey));
   if (Object.keys(saved).length > 0) {
@@ -351,6 +494,7 @@ function saveLanguagePreference() {
     ...profile,
     language: state.language
   }));
+  saveSettings();
 }
 
 function saveView(view) {
@@ -964,6 +1108,42 @@ elements.languageSelect.addEventListener("change", () => {
   saveLanguagePreference();
   applyLanguage();
   updateTotals();
+  playFeedback();
+});
+
+elements.settingsButton?.addEventListener("click", () => {
+  setSettingsPanelOpen(elements.settingsPanel ? elements.settingsPanel.hidden : false);
+  playFeedback();
+});
+
+elements.closeSettingsButton?.addEventListener("click", () => {
+  setSettingsPanelOpen(false);
+  playFeedback();
+});
+
+elements.vibrationToggle?.addEventListener("change", () => {
+  state.vibration = elements.vibrationToggle.checked;
+  saveSettings();
+  playFeedback();
+});
+
+elements.soundToggle?.addEventListener("change", () => {
+  state.sound = elements.soundToggle.checked;
+  saveSettings();
+  playFeedback();
+});
+
+elements.themeToggle?.addEventListener("change", () => {
+  state.theme = elements.themeToggle.checked ? "dark" : "light";
+  applyTheme();
+  saveSettings();
+  playFeedback();
+});
+
+elements.refreshButton?.addEventListener("click", () => {
+  saveSettings();
+  playFeedback();
+  window.location.reload();
 });
 
 if (elements.defaultPlace) {
@@ -988,15 +1168,26 @@ elements.nextMonthButton.addEventListener("click", () => {
 });
 
 elements.backToCalendarButton.addEventListener("click", showCalendar);
-elements.addRowButton.addEventListener("click", () => addRow());
-elements.meetingButton.addEventListener("click", addMeetingRow);
-elements.copyButton.addEventListener("click", copyPreview);
-elements.printButton.addEventListener("click", () => window.print());
+elements.addRowButton.addEventListener("click", () => {
+  addRow();
+  playFeedback();
+});
+elements.meetingButton.addEventListener("click", () => {
+  addMeetingRow();
+  playFeedback();
+});
+elements.copyButton.addEventListener("click", () => {
+  copyPreview();
+  playFeedback();
+});
+elements.printButton.addEventListener("click", () => {
+  playFeedback();
+  window.print();
+});
 
-state.language = DEFAULT_LANGUAGE;
-const initialProfile = getProfile();
-state.language = I18N[initialProfile.language] ? initialProfile.language : DEFAULT_LANGUAGE;
-elements.languageSelect.value = state.language;
+loadSettings();
+syncSettingsControls();
+applyTheme();
 applyLanguage();
 const savedView = getSavedView();
 if (savedView.calendarMonth) {
