@@ -15,9 +15,9 @@
   </head>
   <body>
     <main class="app-shell">
-      <section class="topbar" aria-label="Данные работника">
+      <section class="topbar" aria-label="KPK Døre og Vinduer">
         <div class="brand-lockup">
-          <p class="eyebrow" data-i18n="workSheet">Рабочий лист</p>
+          <p class="eyebrow" data-i18n="workSheet">Arbejdsseddel</p>
           <img class="brand-logo" src="assets/kpk-logo.svg" alt="KPK Døre og Vinduer">
         </div>
         <div class="topbar-actions">
@@ -54,48 +54,48 @@
         <strong id="selectedDateLabel"></strong>
       </section>
 
-      <section class="worker-panel" aria-label="Основная информация">
+      <section class="worker-panel" aria-label="Grundoplysninger">
         <label class="full-name-field">
-          <span data-i18n="fullName">Имя и фамилия</span>
+          <span data-i18n="fullName">Navn og efternavn</span>
           <input id="firstName" autocomplete="name" placeholder="Navn og efternavn" data-i18n-placeholder="fullNamePlaceholder">
         </label>
         <label>
-          <span data-i18n="employeeNumber">Личный номер</span>
-          <input id="employeeNumber" inputmode="numeric" placeholder="Номер работника" data-i18n-placeholder="employeeNumberPlaceholder">
+          <span data-i18n="employeeNumber">Medarbejdernummer</span>
+          <input id="employeeNumber" inputmode="numeric" placeholder="Medarbejdernummer" data-i18n-placeholder="employeeNumberPlaceholder">
         </label>
         <label>
-          <span data-i18n="week">Неделя</span>
+          <span data-i18n="week">Uge</span>
           <input id="weekNumber" type="number" min="1" max="53">
         </label>
         <label>
-          <span data-i18n="day">День</span>
+          <span data-i18n="day">Dag</span>
           <select id="dayNumber">
-            <option value="1">1 - Понедельник</option>
-            <option value="2">2 - Вторник</option>
-            <option value="3">3 - Среда</option>
-            <option value="4">4 - Четверг</option>
-            <option value="5">5 - Пятница</option>
+            <option value="1">1 - Mandag</option>
+            <option value="2">2 - Tirsdag</option>
+            <option value="3">3 - Onsdag</option>
+            <option value="4">4 - Torsdag</option>
+            <option value="5">5 - Fredag</option>
           </select>
         </label>
         <input id="defaultPlace" type="hidden" value="440">
       </section>
 
-      <section class="table-section" aria-label="Работы за день">
+      <section class="table-section" aria-label="Arbejde for dagen">
         <div class="section-head">
-          <h2 data-i18n="seriesAndTime">Серии и время</h2>
+          <h2 data-i18n="seriesAndTime">Serier og tid</h2>
           <div class="row-actions">
-            <button class="text-button muted" id="meetingButton" type="button" data-i18n="addMeeting">+ Встреча 114</button>
-            <button class="text-button" id="addRowButton" type="button" data-i18n="addSeries">+ Серия</button>
+            <button class="text-button muted" id="meetingButton" type="button" data-i18n="addMeeting">+ Møde 114</button>
+            <button class="text-button" id="addRowButton" type="button" data-i18n="addSeries">+ Serie</button>
           </div>
         </div>
 
-        <div class="work-table" role="table" aria-label="Список работ">
+        <div class="work-table" role="table" aria-label="Arbejdsliste">
           <div class="work-row header" role="row">
-            <span data-i18n="place">Место</span>
-            <span data-i18n="series">Серия</span>
-            <span data-i18n="from">С</span>
-            <span data-i18n="to">До</span>
-            <span data-i18n="time">Время</span>
+            <span data-i18n="place">Plads</span>
+            <span data-i18n="series">Serie</span>
+            <span data-i18n="from">Fra</span>
+            <span data-i18n="to">Til</span>
+            <span data-i18n="time">Tid</span>
             <span></span>
             <span></span>
           </div>
@@ -103,7 +103,7 @@
         </div>
       </section>
 
-      <section class="summary-strip" aria-label="Итоги дня">
+      <section class="summary-strip" aria-label="Dagens totaler">
         <article>
           <span data-i18n="shift">Arbejdstid</span>
           <strong id="shiftWindow">06:00-15:05</strong>
@@ -114,13 +114,13 @@
         </article>
       </section>
 
-      <section class="print-sheet" aria-label="Готовый текст">
+      <section class="print-sheet" aria-label="Tekst til sedlen">
         <div class="section-head">
-          <h2 data-i18n="readyText">Как записать на листок</h2>
+          <h2 data-i18n="readyText">Tekst til sedlen</h2>
           <div class="print-actions">
             <span id="copyStatus" role="status"></span>
-            <button class="icon-button" id="printButton" type="button" title="Печать" data-i18n-title="print">⎙</button>
-            <button class="text-button" id="copyButton" type="button" data-i18n="copy">Копировать</button>
+            <button class="icon-button" id="printButton" type="button" title="Print" data-i18n-title="print">⎙</button>
+            <button class="text-button" id="copyButton" type="button" data-i18n="copy">Kopier</button>
           </div>
         </div>
         <pre id="sheetPreview"></pre>
@@ -131,27 +131,27 @@
     <template id="rowTemplate">
       <div class="work-row" role="row">
         <label>
-          <span data-i18n="place">Место</span>
+          <span data-i18n="place">Plads</span>
           <input class="place-input" inputmode="numeric" placeholder="440">
         </label>
         <label>
-          <span data-i18n="series">Серия</span>
-          <input class="series-input" placeholder="Номер серии" data-i18n-placeholder="seriesPlaceholder">
+          <span data-i18n="series">Serie</span>
+          <input class="series-input" placeholder="Serienummer" data-i18n-placeholder="seriesPlaceholder">
         </label>
         <label>
-          <span data-i18n="from">С</span>
+          <span data-i18n="from">Fra</span>
           <input class="start-input" type="time" step="300">
         </label>
         <label>
-          <span data-i18n="to">До</span>
+          <span data-i18n="to">Til</span>
           <input class="end-input" type="time" step="300">
         </label>
         <output class="duration-output">0,00</output>
-        <div class="move-controls" aria-label="Переместить строку" data-i18n-aria-label="moveRow">
-          <button class="move-button move-up" type="button" title="Вверх" data-i18n-title="moveUp">↑</button>
-          <button class="move-button move-down" type="button" title="Вниз" data-i18n-title="moveDown">↓</button>
+        <div class="move-controls" aria-label="Flyt række" data-i18n-aria-label="moveRow">
+          <button class="move-button move-up" type="button" title="Op" data-i18n-title="moveUp">↑</button>
+          <button class="move-button move-down" type="button" title="Ned" data-i18n-title="moveDown">↓</button>
         </div>
-        <button class="remove-button" type="button" title="Удалить строку" data-i18n-title="deleteRow">×</button>
+        <button class="remove-button" type="button" title="Slet række" data-i18n-title="deleteRow">×</button>
       </div>
     </template>
 

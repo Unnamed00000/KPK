@@ -3,5 +3,5 @@
   <path d="M76 104c0-30 24-54 54-54h252c30 0 54 24 54 54v304c0 30-24 54-54 54H130c-30 0-54-24-54-54V104Z" fill="#006fba"/>
   <path d="M126 94h260c16 0 30 13 30 30v260c0 16-14 30-30 30H126c-16 0-30-14-30-30V124c0-17 14-30 30-30Z" fill="#0074bd"/>
   <text x="256" y="270" fill="#fff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="138" font-weight="900" text-anchor="middle" letter-spacing="2">KPK</text>
-  <text x="256" y="356" fill="#fff" font-family="Arial Narrow, Arial, Helvetica, sans-serif" font-size="42" font-weight="800" text-anchor="middle" letter-spacing="5">DØRE OG VINDUER</text>
+  <text x="256" y="356" fill="#fff" font-family="Arial Narrow, Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="middle" textLength="330" lengthAdjust="spacingAndGlyphs">DØRE OG VINDUER</text>
 </svg>

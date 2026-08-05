@@ -335,7 +335,16 @@ function saveProfile(fullName, employeeNumber, defaultPlace) {
   localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({
     fullName,
     employeeNumber,
-    defaultPlace
+    defaultPlace,
+    language: state.language
+  }));
+}
+
+function saveLanguagePreference() {
+  const profile = getProfile();
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({
+    ...profile,
+    language: state.language
   }));
 }
 
@@ -401,6 +410,10 @@ function applyLanguage() {
   updateDayOptions();
   renderCalendar();
   updateSelectedDateLabel();
+  normalizeRowsLanguage();
+}
+
+function normalizeRowsLanguage() {
   state.rows.forEach((row) => {
     if (row.type === "pause") {
       row.place.value = t("pause");
@@ -681,6 +694,7 @@ function buildPreview(rowUnits, totalUnits) {
 }
 
 function updateTotals() {
+  normalizeRowsLanguage();
   const rowUnits = state.rows.map(getRowUnits);
   const totalUnits = rowUnits.reduce((sum, units) => sum + units, 0);
 
@@ -926,6 +940,7 @@ elements.dayNumber.addEventListener("change", () => {
 elements.languageSelect.addEventListener("change", () => {
   state.language = elements.languageSelect.value;
   state.languagePreferenceSet = true;
+  saveLanguagePreference();
   applyLanguage();
   updateTotals();
 });
@@ -958,6 +973,8 @@ elements.copyButton.addEventListener("click", copyPreview);
 elements.printButton.addEventListener("click", () => window.print());
 
 state.language = DEFAULT_LANGUAGE;
+const initialProfile = getProfile();
+state.language = I18N[initialProfile.language] ? initialProfile.language : DEFAULT_LANGUAGE;
 elements.languageSelect.value = state.language;
 applyLanguage();
 showCalendar();
