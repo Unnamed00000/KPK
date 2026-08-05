@@ -282,7 +282,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.1.4";
+const APP_VERSION = "1.1.5";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -996,7 +996,7 @@ function buildPreview(rowUnits, summary) {
       const place = row.place.value || getDefaultPlace();
       const start = row.start.value || "__:__";
       const end = row.end.value || "__:__";
-      lines.push(`${index + 1}. ${t("place")} ${place} | ${t("series")} ${series} | ${start}-${end} | ${formatUnits(rowUnits[rowIndex] || 0)}`);
+      lines.push(`${index + 1}. ${place} | ${series} | ${start}-${end} | ${formatUnits(rowUnits[rowIndex] || 0)}`);
     });
   }
 
