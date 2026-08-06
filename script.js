@@ -24,6 +24,7 @@ const I18N = {
     seriesAndTime: "Серии и время",
     addPause: "+ Пауза",
     addMeeting: "+ Встреча 114",
+    addPlace: "+ Место",
     addSeries: "+ Серия",
     place: "Место",
     series: "Серия",
@@ -100,6 +101,7 @@ const I18N = {
     seriesAndTime: "Serier og tid",
     addPause: "+ Pause",
     addMeeting: "+ Møde 114",
+    addPlace: "+ Plads",
     addSeries: "+ Serie",
     place: "Plads",
     series: "Serie",
@@ -176,6 +178,7 @@ const I18N = {
     seriesAndTime: "Series and time",
     addPause: "+ Pause",
     addMeeting: "+ Meeting 114",
+    addPlace: "+ Place",
     addSeries: "+ Series",
     place: "Place",
     series: "Series",
@@ -252,6 +255,7 @@ const I18N = {
     seriesAndTime: "السلاسل والوقت",
     addPause: "+ استراحة",
     addMeeting: "+ اجتماع 114",
+    addPlace: "+ مكان",
     addSeries: "+ سلسلة",
     place: "المكان",
     series: "السلسلة",
@@ -306,7 +310,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.2.7";
+const APP_VERSION = "1.2.8";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -358,6 +362,7 @@ const elements = {
   sheetPreview: document.querySelector("#sheetPreview"),
   addRowButton: document.querySelector("#addRowButton"),
   meetingButton: document.querySelector("#meetingButton"),
+  placeButton: document.querySelector("#placeButton"),
   copyButton: document.querySelector("#copyButton"),
   printButton: document.querySelector("#printButton"),
   copyStatus: document.querySelector("#copyStatus"),
@@ -981,6 +986,10 @@ function isMeetingRow(row) {
   return row.type === "meeting" || row.place.value.trim() === "114";
 }
 
+function isPlaceOnlyRow(row) {
+  return row.type === "place";
+}
+
 function getTotalsSummary(rowMinutes) {
   return state.rows.reduce((summary, row, index) => {
     if (row.type === "pause") {
@@ -1052,11 +1061,19 @@ function buildPreview(rowUnits, summary) {
     filledRows.forEach((row, index) => {
       const rowIndex = state.rows.indexOf(row);
       const series = row.series.value || "__________";
-      const place = row.place.value || getDefaultPlace();
-      const seriesText = isMeetingRow(row) ? series : `${t("series")} ${series}`;
+      const place = row.place.value || (isPlaceOnlyRow(row) ? "__________" : getDefaultPlace());
       const start = row.start.value || "__:__";
       const end = row.end.value || "__:__";
-      lines.push(`${index + 1}. ${place} | ${seriesText} | ${start}-${end} | ${formatUnits(rowUnits[rowIndex] || 0)}`);
+      const rowParts = [`${index + 1}. ${place}`];
+
+      if (isMeetingRow(row)) {
+        rowParts.push(series);
+      } else if (!isPlaceOnlyRow(row)) {
+        rowParts.push(`${t("series")} ${series}`);
+      }
+
+      rowParts.push(`${start}-${end}`, formatUnits(rowUnits[rowIndex] || 0));
+      lines.push(rowParts.join(" | "));
     });
   }
 
@@ -1130,10 +1147,12 @@ function updateMoveButtons() {
 
 function applyRowType(row) {
   const isPause = row.type === "pause";
+  const isPlaceOnly = isPlaceOnlyRow(row);
   row.element.classList.toggle("pause-row", isPause);
+  row.element.classList.toggle("place-row", isPlaceOnly);
   row.element.dataset.type = row.type;
   row.place.readOnly = isPause;
-  row.series.readOnly = isPause;
+  row.series.readOnly = isPause || isPlaceOnly;
   row.start.type = "time";
   row.end.type = "time";
   row.start.readOnly = false;
@@ -1147,6 +1166,12 @@ function applyRowType(row) {
   if (isPause) {
     row.place.value = t("pause");
     row.series.value = t("pause");
+  } else if (isPlaceOnly) {
+    row.series.value = "";
+    row.series.placeholder = "";
+    row.series.removeAttribute("data-i18n-placeholder");
+  } else {
+    row.series.setAttribute("data-i18n-placeholder", "seriesPlaceholder");
   }
 }
 
@@ -1168,8 +1193,8 @@ function addRow(values = {}) {
     type: values.type ?? "work"
   };
 
-  row.place.value = values.place ?? (row.type === "pause" ? "-" : getDefaultPlace());
-  row.series.value = values.series ?? "";
+  row.place.value = values.place ?? (row.type === "pause" ? "-" : (row.type === "place" ? "" : getDefaultPlace()));
+  row.series.value = row.type === "place" ? "" : (values.series ?? "");
   if (row.type === "pause") {
     row.start.value = parseTimeToMinutes(values.start) === null ? defaultPause.start : values.start;
     row.end.value = parseTimeToMinutes(values.end) === null ? defaultPause.end : values.end;
@@ -1193,6 +1218,16 @@ function addMeetingRow() {
     start: getNextStartTime(),
     end: getShiftEnd(),
     type: "meeting"
+  });
+}
+
+function addPlaceRow() {
+  addRow({
+    place: "",
+    series: "",
+    start: getNextStartTime(),
+    end: getShiftEnd(),
+    type: "place"
   });
 }
 
@@ -1415,6 +1450,10 @@ elements.addRowButton.addEventListener("click", () => {
 });
 elements.meetingButton.addEventListener("click", () => {
   addMeetingRow();
+  playFeedback();
+});
+elements.placeButton.addEventListener("click", () => {
+  addPlaceRow();
   playFeedback();
 });
 elements.copyButton.addEventListener("click", () => {

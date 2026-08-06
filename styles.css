@@ -137,6 +137,10 @@ h2 {
   gap: 10px;
 }
 
+.row-actions {
+  flex-wrap: wrap;
+}
+
 .topbar-actions {
   position: absolute;
   top: 7px;
@@ -678,6 +682,11 @@ button:focus-visible {
 
 .work-row.pause-row .duration-output {
   color: var(--warn);
+}
+
+.work-row.place-row .series-input {
+  background: var(--panel-strong);
+  color: var(--muted);
 }
 
 .text-button,
