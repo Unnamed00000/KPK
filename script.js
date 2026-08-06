@@ -318,7 +318,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.8";
+const APP_VERSION = "1.4.9";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -486,6 +486,43 @@ function updateTopbarClearance() {
 
   const clearance = Math.ceil(elements.topbar.getBoundingClientRect().height) + 22;
   document.documentElement.style.setProperty("--topbar-clearance", `${clearance}px`);
+}
+
+function fitSheetPreviewText() {
+  const preview = elements.sheetPreview;
+  if (!preview) {
+    return;
+  }
+
+  const lines = preview.textContent.split("\n").filter((line) => line.length > 0);
+  if (lines.length === 0 || preview.clientWidth === 0) {
+    preview.style.removeProperty("--preview-font-size");
+    return;
+  }
+
+  const style = getComputedStyle(preview);
+  const availableWidth = preview.clientWidth
+    - parseFloat(style.paddingLeft)
+    - parseFloat(style.paddingRight)
+    - 2;
+  if (availableWidth <= 0) {
+    return;
+  }
+
+  const canvas = fitSheetPreviewText.canvas || document.createElement("canvas");
+  fitSheetPreviewText.canvas = canvas;
+  const context = canvas.getContext("2d");
+  const baseSize = 16;
+  context.font = `${style.fontStyle} ${style.fontWeight} ${baseSize}px ${style.fontFamily}`;
+
+  const longestWidth = Math.max(...lines.map((line) => context.measureText(line).width));
+  if (!Number.isFinite(longestWidth) || longestWidth <= 0) {
+    return;
+  }
+
+  const maxSize = window.innerWidth <= 680 ? 15 : 16;
+  const nextSize = Math.max(7, Math.min(maxSize, (availableWidth / longestWidth) * baseSize * 0.985));
+  preview.style.setProperty("--preview-font-size", `${nextSize.toFixed(2)}px`);
 }
 
 function setUpdateStatus(messageKey) {
@@ -1268,6 +1305,7 @@ function updateTotals() {
   elements.shiftWindow.textContent = getShiftWindowText();
   elements.totalTime.textContent = formatUnits(totalUnits);
   elements.sheetPreview.textContent = buildPreview(rowUnits, summary);
+  fitSheetPreviewText();
 
   updateMoveButtons();
   saveState();
@@ -1690,11 +1728,20 @@ if (savedView.view === "editor" && savedView.selectedDate) {
 
 updateTopbarClearance();
 requestAnimationFrame(updateTopbarClearance);
-window.addEventListener("resize", updateTopbarClearance);
+fitSheetPreviewText();
+requestAnimationFrame(fitSheetPreviewText);
+window.addEventListener("resize", () => {
+  updateTopbarClearance();
+  fitSheetPreviewText();
+});
 window.addEventListener("orientationchange", () => {
   window.setTimeout(updateTopbarClearance, 250);
+  window.setTimeout(fitSheetPreviewText, 250);
 });
-window.addEventListener("load", updateTopbarClearance);
+window.addEventListener("load", () => {
+  updateTopbarClearance();
+  fitSheetPreviewText();
+});
 
 if ("ResizeObserver" in window && elements.topbar) {
   new ResizeObserver(updateTopbarClearance).observe(elements.topbar);

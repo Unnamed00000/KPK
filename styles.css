@@ -829,7 +829,7 @@ pre {
   background: #fbfcfb;
   color: var(--ink);
   font-family: Consolas, "Courier New", monospace;
-  font-size: clamp(0.52rem, 2.2vw, 0.95rem);
+  font-size: var(--preview-font-size, clamp(0.52rem, 2.2vw, 0.95rem));
   line-height: 1.5;
   white-space: pre;
 }
@@ -1022,7 +1022,7 @@ textarea {
 
   pre {
     padding: 8px 2px;
-    font-size: clamp(0.46rem, 2.05vw, 0.6rem);
+    font-size: var(--preview-font-size, clamp(0.46rem, 2.05vw, 0.6rem));
     line-height: 1.55;
   }
 
