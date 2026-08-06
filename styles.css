@@ -73,7 +73,7 @@ select {
   justify-content: space-between;
   gap: 10px;
   min-height: 72px;
-  padding: 9px 58px 9px 12px;
+  padding: 3px 58px 3px 4px;
   transform: translateX(-50%);
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 0 0 8px 8px;
@@ -88,8 +88,8 @@ select {
 .brand-logo {
   display: block;
   width: auto;
-  max-width: min(280px, 66vw);
-  height: 58px;
+  max-width: min(310px, 72vw);
+  height: 66px;
   object-fit: contain;
 }
 
@@ -864,7 +864,7 @@ textarea {
   .topbar {
     width: min(100% - 18px, 1180px);
     min-height: 70px;
-    padding: 8px 50px 8px 10px;
+    padding: 3px 50px 3px 4px;
   }
 
   .section-head {
@@ -930,8 +930,8 @@ textarea {
   }
 
   .brand-logo {
-    max-width: min(250px, 72vw);
-    height: 56px;
+    max-width: min(284px, 78vw);
+    height: 64px;
   }
 
   .text-button {
