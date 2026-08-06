@@ -72,7 +72,7 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 72px;
+  min-height: 78px;
   padding: 3px 58px 3px 4px;
   transform: translateX(-50%);
   border: 1px solid rgba(255, 255, 255, 0.24);
@@ -88,8 +88,8 @@ select {
 .brand-logo {
   display: block;
   width: auto;
-  max-width: min(310px, 72vw);
-  height: 66px;
+  max-width: min(330px, 76vw);
+  height: 72px;
   object-fit: contain;
 }
 
@@ -863,7 +863,7 @@ textarea {
 
   .topbar {
     width: min(100% - 18px, 1180px);
-    min-height: 70px;
+    min-height: 76px;
     padding: 3px 50px 3px 4px;
   }
 
@@ -930,8 +930,8 @@ textarea {
   }
 
   .brand-logo {
-    max-width: min(284px, 78vw);
-    height: 64px;
+    max-width: min(306px, 82vw);
+    height: 70px;
   }
 
   .text-button {
