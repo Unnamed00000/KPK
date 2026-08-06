@@ -969,7 +969,7 @@ textarea {
   }
 
   .work-row {
-    grid-template-columns: minmax(30px, 0.58fr) minmax(34px, 0.66fr) minmax(58px, 0.9fr) minmax(58px, 0.9fr) minmax(38px, 0.54fr) 36px 22px;
+    grid-template-columns: minmax(30px, 0.58fr) minmax(34px, 0.66fr) minmax(58px, 0.9fr) minmax(58px, 0.9fr) minmax(38px, 0.54fr) 40px 22px;
     gap: 2px;
     align-items: end;
   }
@@ -1125,7 +1125,7 @@ textarea {
 }
 
 :root[data-screen-mode="computer"] .work-row {
-  grid-template-columns: minmax(30px, 0.58fr) minmax(34px, 0.66fr) minmax(58px, 0.9fr) minmax(58px, 0.9fr) minmax(38px, 0.54fr) 36px 20px;
+  grid-template-columns: minmax(30px, 0.58fr) minmax(34px, 0.66fr) minmax(58px, 0.9fr) minmax(58px, 0.9fr) minmax(38px, 0.54fr) 40px 22px;
   gap: 2px;
   min-height: 46px;
 }
@@ -1197,7 +1197,7 @@ textarea {
   }
 
   :root[data-screen-mode="computer"] .work-row {
-    grid-template-columns: minmax(25px, 0.48fr) minmax(29px, 0.54fr) minmax(58px, 0.92fr) minmax(58px, 0.92fr) minmax(36px, 0.54fr) 32px 18px;
+    grid-template-columns: minmax(25px, 0.48fr) minmax(29px, 0.54fr) minmax(58px, 0.92fr) minmax(58px, 0.92fr) minmax(36px, 0.54fr) 34px 18px;
     gap: 2px;
   }
 

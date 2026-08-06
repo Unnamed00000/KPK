@@ -1,9 +1,9 @@
-const CACHE_NAME = "kpk-arbejdsseddel-v48";
+const CACHE_NAME = "kpk-arbejdsseddel-v49";
 const APP_FILES = [
   "./",
   "./index.html",
-  "./styles.css?v=1.4.9",
-  "./script.js?v=1.4.9",
+  "./styles.css?v=1.4.10",
+  "./script.js?v=1.4.10",
   "./manifest.webmanifest",
   "./assets/kpk-logo.svg",
   "./assets/kpk-logo.png",
