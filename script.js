@@ -61,6 +61,9 @@ const I18N = {
     refresh: "Обновить",
     forceRefresh: "Force обновление",
     version: "Версия",
+    screenMode: "Экран",
+    smartphone: "Смартфон",
+    computer: "Компьютер",
     dayNames: {
       1: "Понедельник",
       2: "Вторник",
@@ -131,6 +134,9 @@ const I18N = {
     refresh: "Opdater",
     forceRefresh: "Force opdatering",
     version: "Version",
+    screenMode: "Skærm",
+    smartphone: "Smartphone",
+    computer: "Computer",
     dayNames: {
       1: "Mandag",
       2: "Tirsdag",
@@ -201,6 +207,9 @@ const I18N = {
     refresh: "Refresh",
     forceRefresh: "Force refresh",
     version: "Version",
+    screenMode: "Screen",
+    smartphone: "Smartphone",
+    computer: "Computer",
     dayNames: {
       1: "Monday",
       2: "Tuesday",
@@ -271,6 +280,9 @@ const I18N = {
     refresh: "تحديث",
     forceRefresh: "تحديث إجباري",
     version: "الإصدار",
+    screenMode: "الشاشة",
+    smartphone: "هاتف ذكي",
+    computer: "كمبيوتر",
     dayNames: {
       1: "الاثنين",
       2: "الثلاثاء",
@@ -282,7 +294,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.1.10";
+const APP_VERSION = "1.2.0";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -303,6 +315,7 @@ const state = {
   vibration: false,
   sound: false,
   theme: "light",
+  screenMode: "",
   selectedDate: "",
   calendarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   isLoading: false
@@ -339,6 +352,8 @@ const elements = {
   vibrationToggle: document.querySelector("#vibrationToggle"),
   soundToggle: document.querySelector("#soundToggle"),
   themeToggle: document.querySelector("#themeToggle"),
+  mobileMode: document.querySelector("#mobileMode"),
+  computerMode: document.querySelector("#computerMode"),
   refreshButton: document.querySelector("#refreshButton"),
   forceRefreshButton: document.querySelector("#forceRefreshButton"),
   appVersion: document.querySelector("#appVersion")
@@ -393,8 +408,13 @@ function saveSettings() {
     language: state.language,
     vibration: state.vibration,
     sound: state.sound,
-    theme: state.theme
+    theme: state.theme,
+    screenMode: state.screenMode
   }));
+}
+
+function getDefaultScreenMode() {
+  return window.matchMedia("(max-width: 680px)").matches ? "mobile" : "computer";
 }
 
 function loadSettings() {
@@ -406,6 +426,9 @@ function loadSettings() {
   state.vibration = savedSettings.vibration === true;
   state.sound = savedSettings.sound === true;
   state.theme = savedSettings.theme === "dark" ? "dark" : "light";
+  state.screenMode = ["mobile", "computer"].includes(savedSettings.screenMode)
+    ? savedSettings.screenMode
+    : getDefaultScreenMode();
 }
 
 function syncSettingsControls() {
@@ -421,12 +444,23 @@ function syncSettingsControls() {
   if (elements.themeToggle) {
     elements.themeToggle.checked = state.theme === "dark";
   }
+  if (elements.mobileMode) {
+    elements.mobileMode.checked = state.screenMode === "mobile";
+  }
+  if (elements.computerMode) {
+    elements.computerMode.checked = state.screenMode === "computer";
+  }
 }
 
 function applyTheme() {
   document.documentElement.dataset.theme = state.theme;
   const themeColor = state.theme === "dark" ? "#121a16" : "#1f7a55";
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeColor);
+  syncSettingsControls();
+}
+
+function applyScreenMode() {
+  document.documentElement.dataset.screenMode = state.screenMode;
   syncSettingsControls();
 }
 
@@ -1307,6 +1341,15 @@ elements.themeToggle?.addEventListener("change", () => {
   playFeedback();
 });
 
+[elements.mobileMode, elements.computerMode].filter(Boolean).forEach((input) => {
+  input.addEventListener("change", () => {
+    state.screenMode = input.value;
+    applyScreenMode();
+    saveSettings();
+    playFeedback();
+  });
+});
+
 elements.refreshButton?.addEventListener("click", () => {
   saveSettings();
   playFeedback();
@@ -1361,6 +1404,7 @@ elements.printButton.addEventListener("click", () => {
 loadSettings();
 syncSettingsControls();
 applyTheme();
+applyScreenMode();
 if (elements.appVersion) {
   elements.appVersion.textContent = `v${APP_VERSION}`;
 }
