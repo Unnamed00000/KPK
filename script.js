@@ -63,16 +63,14 @@ const I18N = {
     themeHint: "Переключение светлой и темной темы.",
     aboutProgram: "О программе",
     aboutText: "Локальный рабочий лист KPK с календарем, сериями, временем, печатью и копированием.",
-    creator: "Создатель программы",
+    creator: "Создатель",
+    checkUpdate: "Check Update",
     refresh: "Обновить",
     forceRefresh: "Force обновление",
     refreshStarted: "Обновляю страницу...",
     forceRefreshStarted: "Очищаю кэш и перезагружаю...",
     forceRefreshLocal: "Локальный файл не скачивает обновления с GitHub. Перезагружаю файл из этой папки.",
     version: "Версия",
-    screenMode: "Экран",
-    smartphone: "Смартфон",
-    computer: "Компьютер",
     dayNames: {
       1: "Понедельник",
       2: "Вторник",
@@ -145,16 +143,14 @@ const I18N = {
     themeHint: "Skift mellem lys og mørk visning.",
     aboutProgram: "Om programmet",
     aboutText: "Lokal KPK arbejdsseddel med kalender, serier, tid, print og kopi.",
-    creator: "Skaber",
+    creator: "Udvikler",
+    checkUpdate: "Check Update",
     refresh: "Opdater",
     forceRefresh: "Force opdatering",
     refreshStarted: "Opdaterer siden...",
     forceRefreshStarted: "Rydder cache og genindlæser...",
     forceRefreshLocal: "En lokal fil henter ikke opdateringer fra GitHub. Genindlæser filen fra denne mappe.",
     version: "Version",
-    screenMode: "Skærm",
-    smartphone: "Smartphone",
-    computer: "Computer",
     dayNames: {
       1: "Mandag",
       2: "Tirsdag",
@@ -228,15 +224,13 @@ const I18N = {
     aboutProgram: "About",
     aboutText: "Local KPK work sheet with calendar, series, time, print, and copy.",
     creator: "Creator",
+    checkUpdate: "Check Update",
     refresh: "Refresh",
     forceRefresh: "Force refresh",
     refreshStarted: "Refreshing the page...",
     forceRefreshStarted: "Clearing cache and reloading...",
     forceRefreshLocal: "A local file does not download updates from GitHub. Reloading the file from this folder.",
     version: "Version",
-    screenMode: "Screen",
-    smartphone: "Smartphone",
-    computer: "Computer",
     dayNames: {
       1: "Monday",
       2: "Tuesday",
@@ -309,16 +303,14 @@ const I18N = {
     themeHint: "التبديل بين الوضع الفاتح والداكن.",
     aboutProgram: "حول البرنامج",
     aboutText: "ورقة عمل KPK محلية مع التقويم والسلاسل والوقت والطباعة والنسخ.",
-    creator: "منشئ البرنامج",
+    creator: "المنشئ",
+    checkUpdate: "Check Update",
     refresh: "تحديث",
     forceRefresh: "تحديث إجباري",
     refreshStarted: "يتم تحديث الصفحة...",
     forceRefreshStarted: "يتم مسح التخزين المؤقت وإعادة التحميل...",
     forceRefreshLocal: "الملف المحلي لا يحمل التحديثات من GitHub. ستتم إعادة تحميل الملف من هذا المجلد.",
     version: "الإصدار",
-    screenMode: "الشاشة",
-    smartphone: "هاتف ذكي",
-    computer: "كمبيوتر",
     dayNames: {
       1: "الاثنين",
       2: "الثلاثاء",
@@ -330,7 +322,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.3.1";
+const APP_VERSION = "1.3.2";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -391,9 +383,6 @@ const elements = {
   vibrationToggle: document.querySelector("#vibrationToggle"),
   soundToggle: document.querySelector("#soundToggle"),
   themeToggle: document.querySelector("#themeToggle"),
-  mobileMode: document.querySelector("#mobileMode"),
-  computerMode: document.querySelector("#computerMode"),
-  refreshButton: document.querySelector("#refreshButton"),
   forceRefreshButton: document.querySelector("#forceRefreshButton"),
   updateStatus: document.querySelector("#updateStatus"),
   appVersion: document.querySelector("#appVersion")
@@ -453,10 +442,6 @@ function saveSettings() {
   }));
 }
 
-function getDefaultScreenMode() {
-  return window.matchMedia("(max-width: 680px)").matches ? "mobile" : "computer";
-}
-
 function loadSettings() {
   const savedSettings = readJsonStorage(SETTINGS_STORAGE_KEY);
   const savedProfile = getProfile();
@@ -466,9 +451,7 @@ function loadSettings() {
   state.vibration = savedSettings.vibration === true;
   state.sound = savedSettings.sound === true;
   state.theme = savedSettings.theme === "dark" ? "dark" : "light";
-  state.screenMode = ["mobile", "computer"].includes(savedSettings.screenMode)
-    ? savedSettings.screenMode
-    : getDefaultScreenMode();
+  state.screenMode = "computer";
 }
 
 function syncSettingsControls() {
@@ -483,12 +466,6 @@ function syncSettingsControls() {
   }
   if (elements.themeToggle) {
     elements.themeToggle.checked = state.theme === "dark";
-  }
-  if (elements.mobileMode) {
-    elements.mobileMode.checked = state.screenMode === "mobile";
-  }
-  if (elements.computerMode) {
-    elements.computerMode.checked = state.screenMode === "computer";
   }
 }
 
@@ -526,25 +503,17 @@ function setSettingsPanelOpen(isOpen) {
   }
 }
 
-async function refreshApp() {
-  setUpdateStatus("refreshStarted");
-  elements.refreshButton.disabled = true;
+async function forceRefreshApp() {
+  setUpdateStatus(window.location.protocol === "file:" ? "forceRefreshLocal" : "forceRefreshStarted");
+  if (elements.forceRefreshButton) {
+    elements.forceRefreshButton.disabled = true;
+  }
   try {
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(registrations.map((registration) => registration.update()));
     }
-  } catch {
-    // Reload still works when the app is opened as a local file.
-  }
 
-  window.location.reload();
-}
-
-async function forceRefreshApp() {
-  setUpdateStatus(window.location.protocol === "file:" ? "forceRefreshLocal" : "forceRefreshStarted");
-  elements.forceRefreshButton.disabled = true;
-  try {
     if ("caches" in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map((key) => caches.delete(key)));
@@ -1634,21 +1603,6 @@ elements.themeToggle?.addEventListener("change", () => {
   applyTheme();
   saveSettings();
   playFeedback();
-});
-
-[elements.mobileMode, elements.computerMode].filter(Boolean).forEach((input) => {
-  input.addEventListener("change", () => {
-    state.screenMode = input.value;
-    applyScreenMode();
-    saveSettings();
-    playFeedback();
-  });
-});
-
-elements.refreshButton?.addEventListener("click", () => {
-  saveSettings();
-  playFeedback();
-  refreshApp();
 });
 
 elements.forceRefreshButton?.addEventListener("click", () => {

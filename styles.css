@@ -308,11 +308,6 @@ h2 {
   opacity: 0.72;
 }
 
-.screen-mode-settings {
-  display: grid;
-  gap: 10px;
-}
-
 .segmented-control {
   display: grid;
   grid-template-columns: 1fr 1fr;
