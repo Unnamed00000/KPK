@@ -57,7 +57,7 @@ select {
   width: min(1180px, calc(100% - 28px));
   margin: 0 auto;
   overflow-x: clip;
-  padding: 86px 0 86px;
+  padding: 66px 0 86px;
 }
 
 .topbar {
@@ -69,8 +69,9 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 10px 70px 10px 14px;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 56px 6px 12px;
   transform: translateX(-50%);
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 0 0 8px 8px;
@@ -84,8 +85,10 @@ select {
 
 .brand-logo {
   display: block;
-  width: min(250px, 48vw);
-  height: auto;
+  width: auto;
+  max-width: min(190px, 44vw);
+  height: 40px;
+  object-fit: contain;
 }
 
 .app-footer {
@@ -138,9 +141,9 @@ h2 {
 .topbar-actions {
   position: absolute;
   top: 7px;
-  right: 8px;
-  width: 44px;
-  height: 42px;
+  right: 10px;
+  width: 38px;
+  height: 36px;
 }
 
 .settings-button {
@@ -148,15 +151,15 @@ h2 {
   top: 0;
   right: 0;
   display: grid;
-  width: 44px;
-  height: 42px;
+  width: 38px;
+  height: 36px;
   place-items: center;
   border: 0;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(226, 242, 250, 0.8));
   color: #006fb4;
   clip-path: polygon(27% 4%, 73% 4%, 96% 50%, 73% 96%, 27% 96%, 4% 50%);
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
   box-shadow: 0 5px 14px rgba(0, 52, 92, 0.14), inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
   transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
@@ -471,7 +474,7 @@ h2 {
 @media (min-width: 681px) {
   .app-shell {
     min-height: 100dvh;
-    padding-top: 86px;
+    padding-top: 66px;
     padding-bottom: 62px;
   }
 
@@ -843,15 +846,16 @@ textarea {
 @media (max-width: 680px) {
   .app-shell {
     width: min(100% - 18px, 1180px);
-    padding-top: 78px;
+    padding-top: 62px;
     padding-bottom: 88px;
   }
 
   .topbar {
     width: min(100% - 18px, 1180px);
+    min-height: 50px;
+    padding: 5px 50px 5px 10px;
   }
 
-  .topbar,
   .section-head {
     align-items: stretch;
     flex-direction: column;
@@ -906,7 +910,8 @@ textarea {
   }
 
   .brand-logo {
-    width: min(220px, 74vw);
+    max-width: min(164px, 54vw);
+    height: 36px;
   }
 
   .text-button {
@@ -931,6 +936,7 @@ textarea {
 
   .table-section {
     overflow-x: visible;
+    padding: 8px;
   }
 
   .work-table {
@@ -938,33 +944,55 @@ textarea {
   }
 
   .work-row {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(34px, 0.7fr) minmax(38px, 0.74fr) minmax(58px, 1.15fr) minmax(58px, 1.15fr) minmax(34px, 0.56fr) 32px 22px;
+    gap: 2px;
     align-items: end;
   }
 
   .work-row.header {
-    display: none;
+    display: grid;
+    font-size: clamp(0.5rem, 2.2vw, 0.66rem);
   }
 
   .work-row label span {
-    display: block;
+    display: none;
   }
 
   .duration-output {
-    grid-column: span 2;
+    grid-column: auto;
   }
 
   .move-controls {
-    grid-template-columns: repeat(2, 28px);
-    justify-content: end;
+    grid-template-columns: repeat(2, 15px);
+    gap: 2px;
+    justify-content: normal;
   }
 
   .move-button {
-    width: 28px;
+    width: 15px;
+    height: 34px;
+    padding: 0;
+    font-size: clamp(0.58rem, 2.4vw, 0.72rem);
   }
 
   .remove-button {
-    width: 34px;
+    width: 22px;
+    height: 34px;
+    padding: 0;
+    font-size: clamp(0.92rem, 4vw, 1.08rem);
+  }
+
+  .work-row input,
+  .duration-output {
+    min-height: 34px;
+    padding: 5px 3px;
+    font-size: clamp(0.64rem, 2.7vw, 0.78rem);
+  }
+
+  .work-row input[type="time"] {
+    padding-left: 2px;
+    padding-right: 1px;
+    font-size: clamp(0.6rem, 2.8vw, 0.76rem);
   }
 }
 
@@ -1052,7 +1080,7 @@ textarea {
 
 :root[data-screen-mode="computer"] .table-section {
   overflow-x: visible;
-  padding: 10px;
+  padding: 8px;
 }
 
 :root[data-screen-mode="computer"] .work-table {
@@ -1061,27 +1089,27 @@ textarea {
 }
 
 :root[data-screen-mode="computer"] .work-row {
-  grid-template-columns: minmax(48px, 0.55fr) minmax(52px, 0.58fr) minmax(88px, 1.28fr) minmax(88px, 1.28fr) 46px 38px 24px;
-  gap: 4px;
+  grid-template-columns: minmax(30px, 0.55fr) minmax(34px, 0.58fr) minmax(54px, 1.4fr) minmax(54px, 1.4fr) minmax(30px, 0.48fr) 30px 20px;
+  gap: 2px;
   min-height: 46px;
 }
 
 :root[data-screen-mode="computer"] .work-row input,
 :root[data-screen-mode="computer"] .duration-output {
-  min-height: 36px;
-  padding: 6px 5px;
-  font-size: 0.78rem;
+  min-height: 34px;
+  padding: 5px 3px;
+  font-size: clamp(0.62rem, 2.7vw, 0.78rem);
 }
 
 :root[data-screen-mode="computer"] .work-row input[type="time"] {
-  padding-left: 4px;
-  padding-right: 2px;
-  font-size: 0.78rem;
+  padding-left: 2px;
+  padding-right: 1px;
+  font-size: clamp(0.6rem, 2.8vw, 0.78rem);
   letter-spacing: 0;
 }
 
 :root[data-screen-mode="computer"] .work-row.header {
-  font-size: 0.68rem;
+  font-size: clamp(0.5rem, 2.2vw, 0.68rem);
 }
 
 :root[data-screen-mode="computer"] .work-row.header {
@@ -1097,23 +1125,68 @@ textarea {
 }
 
 :root[data-screen-mode="computer"] .move-controls {
-  grid-template-columns: repeat(2, 18px);
+  grid-template-columns: repeat(2, 14px);
   gap: 2px;
   justify-content: normal;
 }
 
 :root[data-screen-mode="computer"] .move-button {
-  width: 18px;
-  height: 36px;
+  width: 14px;
+  height: 34px;
   padding: 0;
-  font-size: 0.78rem;
+  font-size: clamp(0.56rem, 2.4vw, 0.72rem);
 }
 
 :root[data-screen-mode="computer"] .remove-button {
-  width: 26px;
-  height: 36px;
+  width: 20px;
+  height: 34px;
   padding: 0;
-  font-size: 1.2rem;
+  font-size: clamp(0.9rem, 4vw, 1.08rem);
+}
+
+@media (max-width: 360px) {
+  .app-shell,
+  .topbar,
+  .app-footer {
+    width: min(100% - 8px, 1180px);
+  }
+
+  :root[data-screen-mode="computer"] .table-section {
+    padding: 5px;
+  }
+
+  :root[data-screen-mode="computer"] .work-table,
+  #rows {
+    gap: 5px;
+  }
+
+  :root[data-screen-mode="computer"] .work-row {
+    grid-template-columns: minmax(26px, 0.52fr) minmax(30px, 0.55fr) minmax(50px, 1.42fr) minmax(50px, 1.42fr) minmax(28px, 0.48fr) 28px 18px;
+    gap: 2px;
+  }
+
+  :root[data-screen-mode="computer"] .work-row input,
+  :root[data-screen-mode="computer"] .duration-output {
+    padding-left: 2px;
+    padding-right: 2px;
+    font-size: clamp(0.56rem, 2.9vw, 0.68rem);
+  }
+
+  :root[data-screen-mode="computer"] .work-row input[type="time"] {
+    font-size: clamp(0.54rem, 2.9vw, 0.66rem);
+  }
+
+  :root[data-screen-mode="computer"] .move-controls {
+    grid-template-columns: repeat(2, 13px);
+  }
+
+  :root[data-screen-mode="computer"] .move-button {
+    width: 13px;
+  }
+
+  :root[data-screen-mode="computer"] .remove-button {
+    width: 18px;
+  }
 }
 
 @media print {
