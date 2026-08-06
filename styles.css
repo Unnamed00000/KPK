@@ -1,5 +1,6 @@
 :root {
   color-scheme: light;
+  --topbar-clearance: 92px;
   --bg: #f4f6f5;
   --panel: #ffffff;
   --panel-strong: #e8eee9;
@@ -32,6 +33,7 @@
 
 html {
   overflow-x: hidden;
+  scroll-padding-top: var(--topbar-clearance);
 }
 
 body {
@@ -57,7 +59,7 @@ select {
   width: min(1180px, calc(100% - 28px));
   margin: 0 auto;
   overflow-x: clip;
-  padding: 66px 0 86px;
+  padding: var(--topbar-clearance) 0 86px;
 }
 
 .topbar {
@@ -70,8 +72,8 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 52px;
-  padding: 6px 56px 6px 12px;
+  min-height: 66px;
+  padding: 8px 58px 8px 12px;
   transform: translateX(-50%);
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 0 0 8px 8px;
@@ -86,8 +88,8 @@ select {
 .brand-logo {
   display: block;
   width: auto;
-  max-width: min(190px, 44vw);
-  height: 40px;
+  max-width: min(250px, 62vw);
+  height: 52px;
   object-fit: contain;
 }
 
@@ -389,8 +391,17 @@ h2 {
 
 .calendar-panel,
 .editor-toolbar {
+  scroll-margin-top: var(--topbar-clearance);
   padding: 16px;
   border-radius: 8px;
+}
+
+section,
+button,
+input,
+select,
+textarea {
+  scroll-margin-top: var(--topbar-clearance);
 }
 
 .calendar-hint {
@@ -474,7 +485,7 @@ h2 {
 @media (min-width: 681px) {
   .app-shell {
     min-height: 100dvh;
-    padding-top: 66px;
+    padding-top: var(--topbar-clearance);
     padding-bottom: 62px;
   }
 
@@ -846,14 +857,14 @@ textarea {
 @media (max-width: 680px) {
   .app-shell {
     width: min(100% - 18px, 1180px);
-    padding-top: 62px;
+    padding-top: var(--topbar-clearance);
     padding-bottom: 88px;
   }
 
   .topbar {
     width: min(100% - 18px, 1180px);
-    min-height: 50px;
-    padding: 5px 50px 5px 10px;
+    min-height: 62px;
+    padding: 7px 50px 7px 10px;
   }
 
   .section-head {
@@ -910,8 +921,8 @@ textarea {
   }
 
   .brand-logo {
-    max-width: min(164px, 54vw);
-    height: 36px;
+    max-width: min(230px, 70vw);
+    height: 48px;
   }
 
   .text-button {

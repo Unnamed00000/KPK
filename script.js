@@ -318,7 +318,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.3.7";
+const APP_VERSION = "1.3.9";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -355,6 +355,7 @@ const elements = {
   backToCalendarButton: document.querySelector("#backToCalendarButton"),
   settingsPanel: document.querySelector("#settingsPanel"),
   settingsButton: document.querySelector("#settingsButton"),
+  topbar: document.querySelector(".topbar"),
   closeSettingsButton: document.querySelector("#closeSettingsButton"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   firstName: document.querySelector("#firstName"),
@@ -475,6 +476,15 @@ function applyTheme() {
 function applyScreenMode() {
   document.documentElement.dataset.screenMode = state.screenMode;
   syncSettingsControls();
+}
+
+function updateTopbarClearance() {
+  if (!elements.topbar) {
+    return;
+  }
+
+  const clearance = Math.ceil(elements.topbar.getBoundingClientRect().height) + 22;
+  document.documentElement.style.setProperty("--topbar-clearance", `${clearance}px`);
 }
 
 function setUpdateStatus(messageKey) {
@@ -675,6 +685,7 @@ function applyLanguage() {
   renderCalendar();
   updateSelectedDateLabel();
   normalizeRowsLanguage();
+  requestAnimationFrame(updateTopbarClearance);
 }
 
 function normalizeRowsLanguage() {
@@ -1674,6 +1685,18 @@ if (savedView.view === "editor" && savedView.selectedDate) {
   openEditor(savedView.selectedDate);
 } else {
   showCalendar();
+}
+
+updateTopbarClearance();
+requestAnimationFrame(updateTopbarClearance);
+window.addEventListener("resize", updateTopbarClearance);
+window.addEventListener("orientationchange", () => {
+  window.setTimeout(updateTopbarClearance, 250);
+});
+window.addEventListener("load", updateTopbarClearance);
+
+if ("ResizeObserver" in window && elements.topbar) {
+  new ResizeObserver(updateTopbarClearance).observe(elements.topbar);
 }
 
 if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
