@@ -158,9 +158,9 @@
         <div class="section-head">
           <h2 data-i18n="seriesAndTime">Serier og tid</h2>
           <div class="row-actions">
-            <button class="text-button muted" id="meetingButton" type="button" data-i18n="addMeeting">+ Møde 114</button>
-            <button class="text-button muted" id="placeButton" type="button" data-i18n="addPlace">+ Plads</button>
             <button class="text-button" id="addRowButton" type="button" data-i18n="addSeries">+ Serie</button>
+            <button class="text-button" id="meetingButton" type="button" data-i18n="addMeeting">+ Møde 114</button>
+            <button class="text-button" id="placeButton" type="button" data-i18n="addPlace">+ Plads</button>
           </div>
         </div>
 
@@ -195,10 +195,18 @@
           <div class="print-actions">
             <span id="copyStatus" role="status"></span>
             <button class="icon-button" id="printButton" type="button" title="Print" data-i18n-title="print">⎙</button>
-            <button class="text-button" id="copyButton" type="button" data-i18n="copy">Kopier</button>
+            <button class="text-button small-action" id="copyButton" type="button" data-i18n="copy">Kopier</button>
+            <button class="text-button small-action" id="shareButton" type="button" data-i18n="share">Del</button>
           </div>
         </div>
         <pre id="sheetPreview"></pre>
+      </section>
+
+      <section class="comment-section" aria-label="Kommentar">
+        <label>
+          <span data-i18n="comment">Kommentar</span>
+          <textarea id="commentText" rows="4" placeholder="Kommentar til dagen" data-i18n-placeholder="commentPlaceholder"></textarea>
+        </label>
       </section>
       </div>
 
@@ -211,11 +219,11 @@
       <div class="work-row" role="row">
         <label>
           <span data-i18n="place">Plads</span>
-          <input class="place-input" inputmode="numeric" placeholder="440">
+          <input class="place-input" inputmode="numeric" maxlength="4" placeholder="440">
         </label>
         <label>
           <span data-i18n="series">Serie</span>
-          <input class="series-input" placeholder="Serienr." data-i18n-placeholder="seriesPlaceholder">
+          <input class="series-input" maxlength="4" placeholder="Serienr." data-i18n-placeholder="seriesPlaceholder">
         </label>
         <label>
           <span data-i18n="from">Fra</span>

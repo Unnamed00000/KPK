@@ -9,6 +9,7 @@ const I18N = {
     backToCalendar: "Календарь",
     copy: "Копировать",
     print: "Печать",
+    share: "Поделиться",
     createdBy: "Программу создал Adam Margoev",
     fullName: "Имя и фамилия",
     firstName: "Имя",
@@ -48,6 +49,10 @@ const I18N = {
     total: "Итого",
     copied: "Скопировано",
     copyFailed: "Не получилось скопировать",
+    shareUnavailable: "Поделиться PDF здесь не поддерживается",
+    shareFailed: "Не получилось поделиться",
+    comment: "Комментарий",
+    commentPlaceholder: "Комментарий на этот день",
     settings: "Настройки",
     close: "Закрыть",
     vibration: "Вибрация",
@@ -86,6 +91,7 @@ const I18N = {
     backToCalendar: "Kalender",
     copy: "Kopier",
     print: "Print",
+    share: "Del",
     createdBy: "Programmet er lavet af Adam Margoev",
     fullName: "Navn og efternavn",
     firstName: "Fornavn",
@@ -125,6 +131,10 @@ const I18N = {
     total: "I alt",
     copied: "Kopieret",
     copyFailed: "Kunne ikke kopiere",
+    shareUnavailable: "PDF-deling understøttes ikke her",
+    shareFailed: "Kunne ikke dele",
+    comment: "Kommentar",
+    commentPlaceholder: "Kommentar til dagen",
     settings: "Indstillinger",
     close: "Luk",
     vibration: "Vibration",
@@ -163,6 +173,7 @@ const I18N = {
     backToCalendar: "Calendar",
     copy: "Copy",
     print: "Print",
+    share: "Share",
     createdBy: "Created by Adam Margoev",
     fullName: "Full name",
     firstName: "First name",
@@ -202,6 +213,10 @@ const I18N = {
     total: "Total",
     copied: "Copied",
     copyFailed: "Could not copy",
+    shareUnavailable: "PDF sharing is not supported here",
+    shareFailed: "Could not share",
+    comment: "Comment",
+    commentPlaceholder: "Comment for this day",
     settings: "Settings",
     close: "Close",
     vibration: "Vibration",
@@ -240,6 +255,7 @@ const I18N = {
     backToCalendar: "التقويم",
     copy: "نسخ",
     print: "طباعة",
+    share: "مشاركة",
     createdBy: "تم إنشاء البرنامج بواسطة Adam Margoev",
     fullName: "الاسم",
     firstName: "الاسم الأول",
@@ -279,6 +295,10 @@ const I18N = {
     total: "المجموع",
     copied: "تم النسخ",
     copyFailed: "تعذر النسخ",
+    shareUnavailable: "مشاركة PDF غير مدعومة هنا",
+    shareFailed: "تعذرت المشاركة",
+    comment: "تعليق",
+    commentPlaceholder: "تعليق لهذا اليوم",
     settings: "الإعدادات",
     close: "إغلاق",
     vibration: "الاهتزاز",
@@ -310,7 +330,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.2.8";
+const APP_VERSION = "1.2.9";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -364,8 +384,10 @@ const elements = {
   meetingButton: document.querySelector("#meetingButton"),
   placeButton: document.querySelector("#placeButton"),
   copyButton: document.querySelector("#copyButton"),
+  shareButton: document.querySelector("#shareButton"),
   printButton: document.querySelector("#printButton"),
   copyStatus: document.querySelector("#copyStatus"),
+  commentText: document.querySelector("#commentText"),
   vibrationToggle: document.querySelector("#vibrationToggle"),
   soundToggle: document.querySelector("#soundToggle"),
   themeToggle: document.querySelector("#themeToggle"),
@@ -629,6 +651,7 @@ function hasSavedEntry(dateKey) {
   return Boolean(
     saved.fullName
     || saved.employeeNumber
+    || saved.comment
     || (Array.isArray(saved.rows) && saved.rows.length > 0)
   );
 }
@@ -1031,6 +1054,7 @@ function saveState() {
     language: state.language,
     languagePreferenceSet: state.languagePreferenceSet,
     defaultPlace: getDefaultPlace(),
+    comment: elements.commentText?.value || "",
     rows: state.rows.filter((row) => row.type !== "pause").map((row) => ({
       place: row.place.value,
       series: row.series.value,
@@ -1081,6 +1105,176 @@ function buildPreview(rowUnits, summary) {
   lines.push(`${t("total")}: ${formatUnits(totalUnits)}`);
 
   return lines.join("\n");
+}
+
+function getShareText() {
+  const comment = elements.commentText?.value.trim();
+  if (!comment) {
+    return elements.sheetPreview.textContent;
+  }
+  return `${elements.sheetPreview.textContent}\n\n${t("comment")}:\n${comment}`;
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result));
+    reader.addEventListener("error", reject);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function canvasToJpegBlob(canvas) {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.92);
+  });
+}
+
+function wrapPdfLine(context, text, maxWidth) {
+  if (!text) {
+    return [""];
+  }
+
+  const words = text.split(/\s+/);
+  const lines = [];
+  let line = "";
+
+  words.forEach((word) => {
+    const nextLine = line ? `${line} ${word}` : word;
+    if (context.measureText(nextLine).width <= maxWidth) {
+      line = nextLine;
+      return;
+    }
+
+    if (line) {
+      lines.push(line);
+      line = "";
+    }
+
+    let chunk = "";
+    Array.from(word).forEach((char) => {
+      const nextChunk = `${chunk}${char}`;
+      if (context.measureText(nextChunk).width <= maxWidth) {
+        chunk = nextChunk;
+      } else {
+        if (chunk) {
+          lines.push(chunk);
+        }
+        chunk = char;
+      }
+    });
+    line = chunk;
+  });
+
+  if (line) {
+    lines.push(line);
+  }
+
+  return lines.length ? lines : [""];
+}
+
+async function createPdfCanvas(text) {
+  const width = 1240;
+  const padding = 72;
+  const headerHeight = 132;
+  const lineHeight = 34;
+  const maxTextWidth = width - padding * 2;
+  const measureCanvas = document.createElement("canvas");
+  const measureContext = measureCanvas.getContext("2d");
+  measureContext.font = "26px Arial, sans-serif";
+
+  const wrappedLines = text.split("\n").flatMap((line) => wrapPdfLine(measureContext, line, maxTextWidth));
+  const height = padding * 2 + headerHeight + wrappedLines.length * lineHeight + 28;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = Math.max(height, 1754);
+
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = "#006fb4";
+  context.fillRect(padding, padding, 238, 96);
+  context.fillStyle = "#ffffff";
+  context.font = "bold 56px Arial, sans-serif";
+  context.fillText("KPK", padding + 32, padding + 57);
+  context.font = "bold 22px Arial, sans-serif";
+  context.fillText("DØRE OG VINDUER", padding + 32, padding + 84);
+
+  context.fillStyle = "#17201c";
+  context.font = "bold 32px Arial, sans-serif";
+  context.fillText("KPK", padding + 270, padding + 43);
+  context.font = "22px Arial, sans-serif";
+  context.fillText(formatDisplayDate(parseDateKey(state.selectedDate)), padding + 270, padding + 78);
+
+  context.font = "26px Arial, sans-serif";
+  let y = padding + headerHeight;
+  wrappedLines.forEach((line) => {
+    context.fillText(line, padding, y);
+    y += lineHeight;
+  });
+
+  return canvas;
+}
+
+function buildImagePdf(jpegBytes, imageWidth, imageHeight) {
+  const encoder = new TextEncoder();
+  const pageWidth = 595.28;
+  const pageHeight = Math.max(841.89, Math.round((imageHeight / imageWidth) * pageWidth * 100) / 100);
+  const objects = [];
+
+  const addTextObject = (content) => {
+    objects.push(encoder.encode(content));
+  };
+
+  addTextObject("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  addTextObject("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+  addTextObject(`3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`);
+
+  objects.push(encoder.encode(`4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${imageWidth} /Height ${imageHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`));
+  objects.push(jpegBytes);
+  objects.push(encoder.encode("\nendstream\nendobj\n"));
+
+  const contentStream = `q\n${pageWidth} 0 0 ${pageHeight} 0 0 cm\n/Im0 Do\nQ\n`;
+  addTextObject(`5 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}endstream\nendobj\n`);
+
+  const header = encoder.encode("%PDF-1.4\n");
+  const parts = [header];
+  const offsets = [0];
+  let offset = header.length;
+  let objectNumber = 1;
+
+  for (let index = 0; index < objects.length; index += 1) {
+    if (index !== 4 && index !== 5) {
+      offsets[objectNumber] = offset;
+      objectNumber += 1;
+    }
+    parts.push(objects[index]);
+    offset += objects[index].length;
+  }
+
+  const xrefOffset = offset;
+  const xrefLines = ["xref", "0 6", "0000000000 65535 f "];
+  for (let index = 1; index <= 5; index += 1) {
+    xrefLines.push(`${String(offsets[index]).padStart(10, "0")} 00000 n `);
+  }
+  const trailer = `${xrefLines.join("\n")}\ntrailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+  parts.push(encoder.encode(trailer));
+
+  return new Blob(parts, { type: "application/pdf" });
+}
+
+async function createSharePdf() {
+  const canvas = await createPdfCanvas(getShareText());
+  const jpegBlob = await canvasToJpegBlob(canvas);
+  const dataUrl = await blobToDataUrl(jpegBlob);
+  const base64 = dataUrl.split(",")[1];
+  const binary = atob(base64);
+  const jpegBytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    jpegBytes[index] = binary.charCodeAt(index);
+  }
+  return buildImagePdf(jpegBytes, canvas.width, canvas.height);
 }
 
 function updateTotals() {
@@ -1279,6 +1473,9 @@ function loadSavedState(dateKey) {
   state.dayNumber = elements.dayNumber.value;
   elements.languageSelect.value = state.language;
   elements.defaultPlace.value = saved.defaultPlace || profile.defaultPlace || "440";
+  if (elements.commentText) {
+    elements.commentText.value = saved.comment || "";
+  }
   applyLanguage();
 
   const savedRows = Array.isArray(saved.rows) ? saved.rows.filter((row) => row.type !== "pause") : [];
@@ -1300,7 +1497,7 @@ function openEditor(dateKey) {
 }
 
 function copyPreview() {
-  const text = elements.sheetPreview.textContent;
+  const text = getShareText();
   const markCopied = () => {
     elements.copyStatus.textContent = t("copied");
     window.setTimeout(() => {
@@ -1338,9 +1535,47 @@ function copyPreview() {
   });
 }
 
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function sharePdf() {
+  try {
+    const pdfBlob = await createSharePdf();
+    const filename = `kpk-${state.selectedDate || "arbejdsseddel"}.pdf`;
+    const file = new File([pdfBlob], filename, { type: "application/pdf" });
+
+    if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+      await navigator.share({
+        title: "KPK",
+        text: t("readyText"),
+        files: [file]
+      });
+      return;
+    }
+
+    downloadBlob(pdfBlob, filename);
+    elements.copyStatus.textContent = t("shareUnavailable");
+    window.setTimeout(() => {
+      elements.copyStatus.textContent = "";
+    }, 2400);
+  } catch {
+    elements.copyStatus.textContent = t("shareFailed");
+  }
+}
+
 [elements.firstName, elements.employeeNumber, elements.weekNumber, elements.defaultPlace].filter(Boolean).forEach((input) => {
   input.addEventListener("input", updateTotals);
 });
+
+elements.commentText?.addEventListener("input", saveState);
 
 elements.dayNumber.addEventListener("change", () => {
   const previousShiftEnd = getShiftEnd();
@@ -1458,6 +1693,10 @@ elements.placeButton.addEventListener("click", () => {
 });
 elements.copyButton.addEventListener("click", () => {
   copyPreview();
+  playFeedback();
+});
+elements.shareButton.addEventListener("click", () => {
+  sharePdf();
   playFeedback();
 });
 elements.printButton.addEventListener("click", () => {
