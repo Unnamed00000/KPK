@@ -1,4 +1,5 @@
 .firebase/
+firebase-debug.log
 .codex-remote-attachments/
 kpk-logo*.png
 kpk-logo.jpg
