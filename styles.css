@@ -965,6 +965,28 @@ pre {
   overflow: hidden;
 }
 
+:root[data-screen-mode="computer"] .worker-panel {
+  grid-template-columns: minmax(0, 1.15fr) minmax(54px, 0.42fr) minmax(92px, 0.7fr);
+  gap: 8px;
+  padding: 10px;
+}
+
+:root[data-screen-mode="computer"] .worker-panel input,
+:root[data-screen-mode="computer"] .worker-panel select {
+  min-height: 36px;
+  padding: 6px 7px;
+  font-size: 0.82rem;
+}
+
+:root[data-screen-mode="computer"] .worker-panel label span {
+  font-size: 0.68rem;
+  line-height: 1.15;
+}
+
+:root[data-screen-mode="computer"] .full-name-field {
+  grid-column: 1 / -1;
+}
+
 :root[data-screen-mode="computer"] .table-section {
   overflow-x: visible;
   padding: 10px;
