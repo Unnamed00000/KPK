@@ -1012,7 +1012,7 @@ pre {
 }
 
 :root[data-screen-mode="computer"] .work-row {
-  grid-template-columns: minmax(34px, 0.6fr) minmax(50px, 0.9fr) minmax(68px, 1fr) minmax(68px, 1fr) 46px 40px 26px;
+  grid-template-columns: minmax(34px, 0.58fr) minmax(42px, 0.68fr) minmax(76px, 1.18fr) minmax(76px, 1.18fr) 44px 38px 24px;
   gap: 4px;
   min-height: 46px;
 }
@@ -1025,7 +1025,7 @@ pre {
 }
 
 :root[data-screen-mode="computer"] .work-row input[type="time"] {
-  padding-left: 2px;
+  padding-left: 1px;
   padding-right: 0;
   font-size: 0.78rem;
   letter-spacing: 0;
