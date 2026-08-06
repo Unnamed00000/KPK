@@ -86,7 +86,7 @@ const I18N = {
     fullName: "Navn og efternavn",
     firstName: "Fornavn",
     lastName: "Efternavn",
-    employeeNumber: "Medarbejdernummer",
+    employeeNumber: "Medarbejdernr.",
     week: "Uge",
     day: "Dag",
     defaultPlace: "Standardplads",
@@ -111,7 +111,7 @@ const I18N = {
     fullNamePlaceholder: "Navn og efternavn",
     firstNamePlaceholder: "Fx Ahmed",
     lastNamePlaceholder: "Fx Ali",
-    employeeNumberPlaceholder: "Medarbejdernummer",
+    employeeNumberPlaceholder: "Medarbejdernr.",
     seriesPlaceholder: "Serienummer",
     meeting: "Møde",
     pause: "Pause",
@@ -294,7 +294,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.2.2";
+const APP_VERSION = "1.2.3";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
