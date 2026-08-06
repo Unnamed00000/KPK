@@ -11,7 +11,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=1.4.10">
+    <link rel="stylesheet" href="styles.css?v=1.4.11">
   </head>
   <body>
     <main class="app-shell">
@@ -75,7 +75,7 @@
 
             <article class="settings-info">
               <h3 data-i18n="version">Version</h3>
-              <p id="appVersion">v1.4.10</p>
+              <p id="appVersion">v1.4.11</p>
             </article>
 
             <article class="settings-info">
@@ -211,11 +211,11 @@
         </label>
         <label>
           <span data-i18n="from">Fra</span>
-          <input class="start-input" type="time" step="300">
+          <input class="start-input time-input" type="text" inputmode="numeric" placeholder="06:00">
         </label>
         <label>
           <span data-i18n="to">Til</span>
-          <input class="end-input" type="time" step="300">
+          <input class="end-input time-input" type="text" inputmode="numeric" placeholder="15:05">
         </label>
         <output class="duration-output">0,00</output>
         <div class="move-controls" aria-label="Flyt række" data-i18n-aria-label="moveRow">
@@ -226,6 +226,6 @@
       </div>
     </template>
 
-    <script src="script.js?v=1.4.10"></script>
+    <script src="script.js?v=1.4.11"></script>
   </body>
 </html>

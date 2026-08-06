@@ -318,7 +318,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.10";
+const APP_VERSION = "1.4.11";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -839,14 +839,51 @@ function showEditor() {
 }
 
 function parseTimeToMinutes(value) {
-  if (!value) {
+  const normalized = normalizeTimeValue(value);
+  if (!normalized) {
     return null;
   }
-  const [hours, minutes] = value.split(":").map(Number);
+  const [hours, minutes] = normalized.split(":").map(Number);
   if (Number.isNaN(hours) || Number.isNaN(minutes)) {
     return null;
   }
   return hours * 60 + minutes;
+}
+
+function normalizeTimeValue(value) {
+  const rawValue = String(value || "").trim();
+  if (!rawValue) {
+    return "";
+  }
+
+  let hours;
+  let minutes;
+  const separated = rawValue.match(/^(\d{1,2})[:.](\d{1,2})$/);
+  const digits = rawValue.match(/^(\d{3,4})$/);
+
+  if (separated) {
+    hours = Number(separated[1]);
+    minutes = Number(separated[2]);
+  } else if (digits) {
+    const compact = digits[1];
+    hours = Number(compact.slice(0, -2));
+    minutes = Number(compact.slice(-2));
+  } else {
+    return "";
+  }
+
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return "";
+  }
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function normalizeTimeInput(input) {
+  const normalized = normalizeTimeValue(input.value);
+  if (normalized) {
+    input.value = normalized;
+  }
 }
 
 function minutesToUnits(totalMinutes) {
@@ -1316,6 +1353,13 @@ function attachRowEvents(row) {
     input.addEventListener("input", updateTotals);
   });
 
+  [row.start, row.end].forEach((input) => {
+    input.addEventListener("blur", () => {
+      normalizeTimeInput(input);
+      updateTotals();
+    });
+  });
+
   row.remove.addEventListener("click", () => {
     row.element.remove();
     state.rows = state.rows.filter((item) => item !== row);
@@ -1362,15 +1406,15 @@ function applyRowType(row) {
   row.element.dataset.type = row.type;
   row.place.readOnly = isPause;
   row.series.readOnly = isPause || isPlaceOnly;
-  row.start.type = "time";
-  row.end.type = "time";
+  row.start.type = "text";
+  row.end.type = "text";
   row.start.readOnly = false;
   row.end.readOnly = false;
-  row.start.step = "300";
-  row.end.step = "300";
+  row.start.inputMode = "numeric";
+  row.end.inputMode = "numeric";
+  row.start.placeholder = "06:00";
+  row.end.placeholder = "15:05";
   row.end.min = "";
-  row.end.inputMode = "";
-  row.end.placeholder = "";
 
   if (isPause) {
     row.place.value = t("pause");
