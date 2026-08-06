@@ -964,7 +964,7 @@ textarea {
   }
 
   .work-row {
-    grid-template-columns: minmax(38px, 0.9fr) minmax(42px, 1fr) minmax(50px, 0.7fr) minmax(50px, 0.7fr) minmax(32px, 0.48fr) 40px 22px;
+    grid-template-columns: minmax(34px, 0.72fr) minmax(38px, 0.82fr) minmax(58px, 0.9fr) minmax(58px, 0.9fr) minmax(30px, 0.42fr) 38px 22px;
     gap: 2px;
     align-items: end;
   }
@@ -1109,7 +1109,7 @@ textarea {
 }
 
 :root[data-screen-mode="computer"] .work-row {
-  grid-template-columns: minmax(38px, 0.9fr) minmax(42px, 1fr) minmax(50px, 0.7fr) minmax(50px, 0.7fr) minmax(30px, 0.44fr) 40px 20px;
+  grid-template-columns: minmax(34px, 0.72fr) minmax(38px, 0.82fr) minmax(58px, 0.9fr) minmax(58px, 0.9fr) minmax(28px, 0.4fr) 38px 20px;
   gap: 2px;
   min-height: 46px;
 }
@@ -1124,7 +1124,7 @@ textarea {
 :root[data-screen-mode="computer"] .work-row input[type="time"] {
   padding-left: 2px;
   padding-right: 1px;
-  font-size: clamp(0.6rem, 2.8vw, 0.78rem);
+  font-size: clamp(0.58rem, 2.6vw, 0.76rem);
   letter-spacing: 0;
 }
 
@@ -1181,7 +1181,7 @@ textarea {
   }
 
   :root[data-screen-mode="computer"] .work-row {
-    grid-template-columns: minmax(34px, 0.86fr) minmax(38px, 0.96fr) minmax(46px, 0.64fr) minmax(46px, 0.64fr) minmax(28px, 0.42fr) 36px 18px;
+    grid-template-columns: minmax(28px, 0.58fr) minmax(32px, 0.66fr) minmax(58px, 0.92fr) minmax(58px, 0.92fr) minmax(24px, 0.34fr) 34px 18px;
     gap: 2px;
   }
 
@@ -1193,15 +1193,15 @@ textarea {
   }
 
   :root[data-screen-mode="computer"] .work-row input[type="time"] {
-    font-size: clamp(0.54rem, 2.9vw, 0.66rem);
+    font-size: clamp(0.52rem, 2.6vw, 0.64rem);
   }
 
   :root[data-screen-mode="computer"] .move-controls {
-    grid-template-columns: repeat(2, 17px);
+    grid-template-columns: repeat(2, 16px);
   }
 
   :root[data-screen-mode="computer"] .move-button {
-    width: 17px;
+    width: 16px;
   }
 
   :root[data-screen-mode="computer"] .remove-button {
