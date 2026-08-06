@@ -1,7 +1,6 @@
 const I18N = {
   ru: {
     htmlLang: "ru",
-    workSheet: "Рабочий лист",
     calendar: "Календарь",
     calendarHint: "Выберите дату, чтобы заполнить рабочий лист.",
     previousMonth: "Предыдущий месяц",
@@ -24,7 +23,7 @@ const I18N = {
     pauses: "Паузы",
     seriesAndTime: "Серии и время",
     addPause: "+ Пауза",
-    addMeeting: "+ Встреча 114",
+    addMeeting: "+ Встреча",
     addPlace: "+ Место",
     addSeries: "+ Серия",
     place: "Место",
@@ -81,7 +80,6 @@ const I18N = {
   },
   da: {
     htmlLang: "da",
-    workSheet: "Arbejdsseddel",
     calendar: "Kalender",
     calendarHint: "Vælg en dato for at udfylde arbejdssedlen.",
     previousMonth: "Forrige måned",
@@ -104,7 +102,7 @@ const I18N = {
     pauses: "Pauser",
     seriesAndTime: "Serier og tid",
     addPause: "+ Pause",
-    addMeeting: "+ Møde 114",
+    addMeeting: "+ Møde",
     addPlace: "+ Plads",
     addSeries: "+ Serie",
     place: "Plads",
@@ -161,7 +159,6 @@ const I18N = {
   },
   en: {
     htmlLang: "en",
-    workSheet: "Work sheet",
     calendar: "Calendar",
     calendarHint: "Choose a date to fill out the work sheet.",
     previousMonth: "Previous month",
@@ -184,7 +181,7 @@ const I18N = {
     pauses: "Pauses",
     seriesAndTime: "Series and time",
     addPause: "+ Pause",
-    addMeeting: "+ Meeting 114",
+    addMeeting: "+ Meeting",
     addPlace: "+ Place",
     addSeries: "+ Series",
     place: "Place",
@@ -241,7 +238,6 @@ const I18N = {
   },
   ar: {
     htmlLang: "ar",
-    workSheet: "ورقة العمل",
     calendar: "التقويم",
     calendarHint: "اختر تاريخا لتعبئة ورقة العمل.",
     previousMonth: "الشهر السابق",
@@ -264,7 +260,7 @@ const I18N = {
     pauses: "الاستراحات",
     seriesAndTime: "السلاسل والوقت",
     addPause: "+ استراحة",
-    addMeeting: "+ اجتماع 114",
+    addMeeting: "+ اجتماع",
     addPlace: "+ مكان",
     addSeries: "+ سلسلة",
     place: "المكان",
@@ -322,7 +318,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.3.2";
+const APP_VERSION = "1.3.3";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";

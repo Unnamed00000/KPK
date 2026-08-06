@@ -57,31 +57,25 @@ select {
   width: min(1180px, calc(100% - 28px));
   margin: 0 auto;
   overflow-x: clip;
-  padding: 12px 0 86px;
+  padding: 86px 0 86px;
 }
 
 .topbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 50%;
   z-index: 20;
+  width: min(1180px, calc(100% - 28px));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
   padding: 10px 70px 10px 14px;
+  transform: translateX(-50%);
   border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 12px;
+  border-radius: 0 0 8px 8px;
   background: linear-gradient(115deg, #006eaf, #0088c9);
   box-shadow: 0 6px 18px rgba(0, 73, 119, 0.18);
-}
-
-.eyebrow {
-  margin: 0 0 2px;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: uppercase;
 }
 
 .brand-lockup {
@@ -477,7 +471,7 @@ h2 {
 @media (min-width: 681px) {
   .app-shell {
     min-height: 100dvh;
-    padding-top: 10px;
+    padding-top: 86px;
     padding-bottom: 62px;
   }
 
@@ -849,8 +843,12 @@ textarea {
 @media (max-width: 680px) {
   .app-shell {
     width: min(100% - 18px, 1180px);
-    padding-top: 8px;
+    padding-top: 78px;
     padding-bottom: 88px;
+  }
+
+  .topbar {
+    width: min(100% - 18px, 1180px);
   }
 
   .topbar,

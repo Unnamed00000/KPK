@@ -1,4 +1,4 @@
-const CACHE_NAME = "kpk-arbejdsseddel-v31";
+const CACHE_NAME = "kpk-arbejdsseddel-v32";
 const APP_FILES = [
   "./",
   "./index.html",
