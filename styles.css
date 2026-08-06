@@ -1012,7 +1012,7 @@ pre {
 }
 
 :root[data-screen-mode="computer"] .work-row {
-  grid-template-columns: minmax(38px, 0.72fr) minmax(58px, 1.1fr) minmax(54px, 0.9fr) minmax(54px, 0.9fr) 48px 44px 28px;
+  grid-template-columns: minmax(34px, 0.6fr) minmax(50px, 0.9fr) minmax(68px, 1fr) minmax(68px, 1fr) 46px 40px 26px;
   gap: 4px;
   min-height: 46px;
 }
@@ -1025,9 +1025,10 @@ pre {
 }
 
 :root[data-screen-mode="computer"] .work-row input[type="time"] {
-  padding-left: 3px;
-  padding-right: 2px;
-  font-size: 0.72rem;
+  padding-left: 2px;
+  padding-right: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0;
 }
 
 :root[data-screen-mode="computer"] .work-row.header {
@@ -1047,20 +1048,20 @@ pre {
 }
 
 :root[data-screen-mode="computer"] .move-controls {
-  grid-template-columns: repeat(2, 20px);
-  gap: 3px;
+  grid-template-columns: repeat(2, 18px);
+  gap: 2px;
   justify-content: normal;
 }
 
 :root[data-screen-mode="computer"] .move-button {
-  width: 20px;
+  width: 18px;
   height: 36px;
   padding: 0;
   font-size: 0.78rem;
 }
 
 :root[data-screen-mode="computer"] .remove-button {
-  width: 28px;
+  width: 26px;
   height: 36px;
   padding: 0;
   font-size: 1.2rem;
