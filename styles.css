@@ -73,7 +73,7 @@ select {
   justify-content: space-between;
   gap: 10px;
   min-height: 78px;
-  padding: 3px 58px 3px 4px;
+  padding: 2px 58px 2px 4px;
   transform: translateX(-50%);
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 0 0 8px 8px;
@@ -89,7 +89,7 @@ select {
   display: block;
   width: auto;
   max-width: min(330px, 76vw);
-  height: 72px;
+  height: 74px;
   object-fit: contain;
 }
 
@@ -824,9 +824,9 @@ pre {
   background: #fbfcfb;
   color: var(--ink);
   font-family: Consolas, "Courier New", monospace;
-  font-size: 0.95rem;
-  line-height: 1.55;
-  white-space: pre-wrap;
+  font-size: clamp(0.56rem, 2.35vw, 0.95rem);
+  line-height: 1.5;
+  white-space: pre;
 }
 
 textarea {
@@ -864,7 +864,7 @@ textarea {
   .topbar {
     width: min(100% - 18px, 1180px);
     min-height: 76px;
-    padding: 3px 50px 3px 4px;
+    padding: 2px 50px 2px 4px;
   }
 
   .section-head {
@@ -931,7 +931,7 @@ textarea {
 
   .brand-logo {
     max-width: min(306px, 82vw);
-    height: 70px;
+    height: 72px;
   }
 
   .text-button {
@@ -1013,6 +1013,12 @@ textarea {
     padding-left: 2px;
     padding-right: 1px;
     font-size: clamp(0.6rem, 2.8vw, 0.76rem);
+  }
+
+  pre {
+    padding: 10px;
+    font-size: clamp(0.52rem, 2.35vw, 0.64rem);
+    line-height: 1.55;
   }
 }
 
@@ -1260,10 +1266,12 @@ textarea {
   pre {
     min-height: 0;
     padding: 0;
+    overflow: visible;
     border: 0;
     background: #fff;
-    font-size: 12pt;
+    font-size: 10pt;
     line-height: 1.45;
+    white-space: pre;
   }
 
   textarea {
