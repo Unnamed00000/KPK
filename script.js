@@ -60,6 +60,9 @@ const I18N = {
     creator: "Создатель программы",
     refresh: "Обновить",
     forceRefresh: "Force обновление",
+    refreshStarted: "Обновляю страницу...",
+    forceRefreshStarted: "Очищаю кэш и перезагружаю...",
+    forceRefreshLocal: "Локальный файл не скачивает обновления с GitHub. Перезагружаю файл из этой папки.",
     version: "Версия",
     screenMode: "Экран",
     smartphone: "Смартфон",
@@ -133,6 +136,9 @@ const I18N = {
     creator: "Skaber",
     refresh: "Opdater",
     forceRefresh: "Force opdatering",
+    refreshStarted: "Opdaterer siden...",
+    forceRefreshStarted: "Rydder cache og genindlæser...",
+    forceRefreshLocal: "En lokal fil henter ikke opdateringer fra GitHub. Genindlæser filen fra denne mappe.",
     version: "Version",
     screenMode: "Skærm",
     smartphone: "Smartphone",
@@ -206,6 +212,9 @@ const I18N = {
     creator: "Creator",
     refresh: "Refresh",
     forceRefresh: "Force refresh",
+    refreshStarted: "Refreshing the page...",
+    forceRefreshStarted: "Clearing cache and reloading...",
+    forceRefreshLocal: "A local file does not download updates from GitHub. Reloading the file from this folder.",
     version: "Version",
     screenMode: "Screen",
     smartphone: "Smartphone",
@@ -279,6 +288,9 @@ const I18N = {
     creator: "منشئ البرنامج",
     refresh: "تحديث",
     forceRefresh: "تحديث إجباري",
+    refreshStarted: "يتم تحديث الصفحة...",
+    forceRefreshStarted: "يتم مسح التخزين المؤقت وإعادة التحميل...",
+    forceRefreshLocal: "الملف المحلي لا يحمل التحديثات من GitHub. ستتم إعادة تحميل الملف من هذا المجلد.",
     version: "الإصدار",
     screenMode: "الشاشة",
     smartphone: "هاتف ذكي",
@@ -294,7 +306,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.2.3";
+const APP_VERSION = "1.2.4";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -356,6 +368,7 @@ const elements = {
   computerMode: document.querySelector("#computerMode"),
   refreshButton: document.querySelector("#refreshButton"),
   forceRefreshButton: document.querySelector("#forceRefreshButton"),
+  updateStatus: document.querySelector("#updateStatus"),
   appVersion: document.querySelector("#appVersion")
 };
 
@@ -464,6 +477,12 @@ function applyScreenMode() {
   syncSettingsControls();
 }
 
+function setUpdateStatus(messageKey) {
+  if (elements.updateStatus) {
+    elements.updateStatus.textContent = t(messageKey);
+  }
+}
+
 function setSettingsPanelOpen(isOpen) {
   if (!elements.settingsPanel || !elements.settingsButton) {
     return;
@@ -481,6 +500,8 @@ function setSettingsPanelOpen(isOpen) {
 }
 
 async function refreshApp() {
+  setUpdateStatus("refreshStarted");
+  elements.refreshButton.disabled = true;
   try {
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
@@ -494,6 +515,8 @@ async function refreshApp() {
 }
 
 async function forceRefreshApp() {
+  setUpdateStatus(window.location.protocol === "file:" ? "forceRefreshLocal" : "forceRefreshStarted");
+  elements.forceRefreshButton.disabled = true;
   try {
     if ("caches" in window) {
       const keys = await caches.keys();
@@ -510,7 +533,9 @@ async function forceRefreshApp() {
 
   const url = new URL(window.location.href);
   url.searchParams.set("forceUpdate", String(Date.now()));
-  window.location.replace(url.toString());
+  window.setTimeout(() => {
+    window.location.replace(url.toString());
+  }, window.location.protocol === "file:" ? 900 : 150);
 }
 
 function playFeedback() {

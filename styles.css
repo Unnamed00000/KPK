@@ -290,6 +290,20 @@ h2 {
   width: 100%;
 }
 
+.settings-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.text-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .screen-mode-settings {
   display: grid;
   gap: 10px;
