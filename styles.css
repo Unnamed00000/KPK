@@ -653,7 +653,7 @@ button:focus-visible {
 
 .work-row {
   display: grid;
-  grid-template-columns: 0.72fr 0.82fr 1fr 1fr 88px 74px 40px;
+  grid-template-columns: minmax(72px, 0.95fr) minmax(82px, 1.05fr) minmax(76px, 0.72fr) minmax(76px, 0.72fr) 70px 86px 40px;
   gap: 8px;
   align-items: end;
   min-height: 54px;
@@ -850,7 +850,7 @@ textarea {
 @media (max-width: 900px) {
   .work-row,
   .work-row.header {
-    grid-template-columns: 0.72fr 0.86fr 1fr 1fr 76px 70px 38px;
+    grid-template-columns: minmax(54px, 0.92fr) minmax(60px, 1fr) minmax(62px, 0.74fr) minmax(62px, 0.74fr) 54px 78px 34px;
   }
 }
 
@@ -964,7 +964,7 @@ textarea {
   }
 
   .work-row {
-    grid-template-columns: minmax(34px, 0.7fr) minmax(38px, 0.74fr) minmax(58px, 1.15fr) minmax(58px, 1.15fr) minmax(34px, 0.56fr) 32px 22px;
+    grid-template-columns: minmax(38px, 0.9fr) minmax(42px, 1fr) minmax(50px, 0.7fr) minmax(50px, 0.7fr) minmax(32px, 0.48fr) 40px 22px;
     gap: 2px;
     align-items: end;
   }
@@ -983,13 +983,13 @@ textarea {
   }
 
   .move-controls {
-    grid-template-columns: repeat(2, 15px);
+    grid-template-columns: repeat(2, 19px);
     gap: 2px;
     justify-content: normal;
   }
 
   .move-button {
-    width: 15px;
+    width: 19px;
     height: 34px;
     padding: 0;
     font-size: clamp(0.58rem, 2.4vw, 0.72rem);
@@ -1109,7 +1109,7 @@ textarea {
 }
 
 :root[data-screen-mode="computer"] .work-row {
-  grid-template-columns: minmax(30px, 0.55fr) minmax(34px, 0.58fr) minmax(54px, 1.4fr) minmax(54px, 1.4fr) minmax(30px, 0.48fr) 30px 20px;
+  grid-template-columns: minmax(38px, 0.9fr) minmax(42px, 1fr) minmax(50px, 0.7fr) minmax(50px, 0.7fr) minmax(30px, 0.44fr) 40px 20px;
   gap: 2px;
   min-height: 46px;
 }
@@ -1145,13 +1145,13 @@ textarea {
 }
 
 :root[data-screen-mode="computer"] .move-controls {
-  grid-template-columns: repeat(2, 14px);
+  grid-template-columns: repeat(2, 19px);
   gap: 2px;
   justify-content: normal;
 }
 
 :root[data-screen-mode="computer"] .move-button {
-  width: 14px;
+  width: 19px;
   height: 34px;
   padding: 0;
   font-size: clamp(0.56rem, 2.4vw, 0.72rem);
@@ -1181,7 +1181,7 @@ textarea {
   }
 
   :root[data-screen-mode="computer"] .work-row {
-    grid-template-columns: minmax(26px, 0.52fr) minmax(30px, 0.55fr) minmax(50px, 1.42fr) minmax(50px, 1.42fr) minmax(28px, 0.48fr) 28px 18px;
+    grid-template-columns: minmax(34px, 0.86fr) minmax(38px, 0.96fr) minmax(46px, 0.64fr) minmax(46px, 0.64fr) minmax(28px, 0.42fr) 36px 18px;
     gap: 2px;
   }
 
@@ -1197,11 +1197,11 @@ textarea {
   }
 
   :root[data-screen-mode="computer"] .move-controls {
-    grid-template-columns: repeat(2, 13px);
+    grid-template-columns: repeat(2, 17px);
   }
 
   :root[data-screen-mode="computer"] .move-button {
-    width: 13px;
+    width: 17px;
   }
 
   :root[data-screen-mode="computer"] .remove-button {
