@@ -967,15 +967,35 @@ pre {
 
 :root[data-screen-mode="computer"] .table-section {
   overflow-x: visible;
+  padding: 10px;
 }
 
 :root[data-screen-mode="computer"] .work-table {
   min-width: 0;
+  gap: 6px;
 }
 
 :root[data-screen-mode="computer"] .work-row {
-  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.2fr) minmax(0, 0.85fr) minmax(0, 0.85fr) 72px 58px 34px;
-  gap: 6px;
+  grid-template-columns: minmax(38px, 0.72fr) minmax(58px, 1.1fr) minmax(54px, 0.9fr) minmax(54px, 0.9fr) 48px 44px 28px;
+  gap: 4px;
+  min-height: 46px;
+}
+
+:root[data-screen-mode="computer"] .work-row input,
+:root[data-screen-mode="computer"] .duration-output {
+  min-height: 36px;
+  padding: 6px 5px;
+  font-size: 0.78rem;
+}
+
+:root[data-screen-mode="computer"] .work-row input[type="time"] {
+  padding-left: 3px;
+  padding-right: 2px;
+  font-size: 0.72rem;
+}
+
+:root[data-screen-mode="computer"] .work-row.header {
+  font-size: 0.68rem;
 }
 
 :root[data-screen-mode="computer"] .work-row.header {
@@ -991,16 +1011,23 @@ pre {
 }
 
 :root[data-screen-mode="computer"] .move-controls {
-  grid-template-columns: repeat(2, 26px);
+  grid-template-columns: repeat(2, 20px);
+  gap: 3px;
   justify-content: normal;
 }
 
 :root[data-screen-mode="computer"] .move-button {
-  width: 26px;
+  width: 20px;
+  height: 36px;
+  padding: 0;
+  font-size: 0.78rem;
 }
 
 :root[data-screen-mode="computer"] .remove-button {
-  width: 34px;
+  width: 28px;
+  height: 36px;
+  padding: 0;
+  font-size: 1.2rem;
 }
 
 @media print {
