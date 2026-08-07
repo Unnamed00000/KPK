@@ -19,13 +19,26 @@ const I18N = {
     defaultPlace: "Місце за замовчуванням",
     language: "Мова",
     shift: "Робочий час",
+    period: "Periode",
     counted: "Загальний час",
     pauses: "Паузи",
     seriesAndTime: "Серії та час",
+    normalMode: "Normal",
+    variableMode: "Variable",
+    accumulatedExtra: "Afspadsering",
+    calendarLegendTitle: "Forklaring",
+    legendGreen: "Зелена точка: день заповнений.",
+    legendBlue: "Синя точка: робота понад вибраний план N/V.",
+    legendYellow: "Жовта точка: цього дня використано afspadsering.",
+    legendNormal: "Помаранчева N: normal arbejdstid.",
+    legendVariable: "Помаранчева V: variable arbejdstid.",
+    legendToday: "Зелена рамка: сьогоднішня дата.",
     addPause: "+ Пауза",
     addMeeting: "+ Зустріч",
     addPlace: "+ Місце",
     addSeries: "+ Серія",
+    addTimeOff: "+ Afsp.",
+    timeOff: "Afspadsering",
     place: "Місце",
     series: "Серія",
     from: "З",
@@ -98,13 +111,26 @@ const I18N = {
     defaultPlace: "Standardplads",
     language: "Sprog",
     shift: "Arbejdstid",
+    period: "Periode",
     counted: "I alt",
     pauses: "Pauser",
     seriesAndTime: "Serier og tid",
+    normalMode: "Normal",
+    variableMode: "Variable",
+    accumulatedExtra: "Afspadsering",
+    calendarLegendTitle: "Forklaring",
+    legendGreen: "Grøn prik: dagen er udfyldt.",
+    legendBlue: "Blå prik: der er arbejdet mere end dagens valgte N/V-plan.",
+    legendYellow: "Gul prik: der er brugt afspadsering den dag.",
+    legendNormal: "Orange N: normal arbejdstid.",
+    legendVariable: "Orange V: variable arbejdstid.",
+    legendToday: "Grøn kant: dags dato.",
     addPause: "+ Pause",
     addMeeting: "+ Møde",
     addPlace: "+ Plads",
     addSeries: "+ Serie",
+    addTimeOff: "+ Afsp.",
+    timeOff: "Afspadsering",
     place: "Plads",
     series: "Serie",
     from: "Fra",
@@ -177,13 +203,26 @@ const I18N = {
     defaultPlace: "Default place",
     language: "Language",
     shift: "Work time",
+    period: "Period",
     counted: "Total time",
     pauses: "Pauses",
     seriesAndTime: "Series and time",
+    normalMode: "Normal",
+    variableMode: "Variable",
+    accumulatedExtra: "Afspadsering",
+    calendarLegendTitle: "Legend",
+    legendGreen: "Green dot: the day has saved work.",
+    legendBlue: "Blue dot: work is above the selected N/V plan.",
+    legendYellow: "Yellow dot: afspadsering was used that day.",
+    legendNormal: "Orange N: normal work time.",
+    legendVariable: "Orange V: variable work time.",
+    legendToday: "Green outline: today.",
     addPause: "+ Pause",
     addMeeting: "+ Meeting",
     addPlace: "+ Place",
     addSeries: "+ Series",
+    addTimeOff: "+ Afsp.",
+    timeOff: "Afspadsering",
     place: "Place",
     series: "Series",
     from: "From",
@@ -256,13 +295,26 @@ const I18N = {
     defaultPlace: "المكان الافتراضي",
     language: "اللغة",
     shift: "وقت العمل",
+    period: "Period",
     counted: "إجمالي الوقت",
     pauses: "الاستراحات",
     seriesAndTime: "السلاسل والوقت",
+    normalMode: "Normal",
+    variableMode: "Variable",
+    accumulatedExtra: "Afspadsering",
+    calendarLegendTitle: "Legend",
+    legendGreen: "Green dot: the day has saved work.",
+    legendBlue: "Blue dot: work is above the selected N/V plan.",
+    legendYellow: "Yellow dot: afspadsering was used that day.",
+    legendNormal: "Orange N: normal work time.",
+    legendVariable: "Orange V: variable work time.",
+    legendToday: "Green outline: today.",
     addPause: "+ استراحة",
     addMeeting: "+ اجتماع",
     addPlace: "+ مكان",
     addSeries: "+ سلسلة",
+    addTimeOff: "+ Afsp.",
+    timeOff: "Afspadsering",
     place: "المكان",
     series: "السلسلة",
     from: "من",
@@ -318,14 +370,24 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.11";
+const APP_VERSION = "1.4.23";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
 const PROFILE_STORAGE_KEY = "kpk-work-sheet-profile";
 const VIEW_STORAGE_KEY = "kpk-work-sheet-view";
 const SETTINGS_STORAGE_KEY = "kpk-work-sheet-settings";
-const KNOWN_SHIFT_ENDS = ["15:00", "15:05"];
+const WORK_MODES = {
+  normal: {
+    regularEnd: "14:05",
+    fridayEnd: "14:00"
+  },
+  variable: {
+    regularEnd: "15:05",
+    fridayEnd: "15:00"
+  }
+};
+const KNOWN_SHIFT_ENDS = ["14:00", "14:05", "15:00", "15:05"];
 const DEFAULT_PAUSES = [
   { start: "09:00", end: "09:20" },
   { start: "12:00", end: "12:20" }
@@ -340,6 +402,7 @@ const state = {
   sound: false,
   theme: "light",
   screenMode: "",
+  workMode: "variable",
   selectedDate: "",
   calendarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   isLoading: false
@@ -350,6 +413,11 @@ const elements = {
   editorView: document.querySelector("#editorView"),
   calendarGrid: document.querySelector("#calendarGrid"),
   calendarTitle: document.querySelector("#calendarTitle"),
+  calendarExtraPanel: document.querySelector("#calendarExtraPanel"),
+  calendarHelpButton: document.querySelector("#calendarHelpButton"),
+  calendarLegendPanel: document.querySelector("#calendarLegendPanel"),
+  closeCalendarLegendButton: document.querySelector("#closeCalendarLegendButton"),
+  accumulatedExtraTime: document.querySelector("#accumulatedExtraTime"),
   prevMonthButton: document.querySelector("#prevMonthButton"),
   nextMonthButton: document.querySelector("#nextMonthButton"),
   backToCalendarButton: document.querySelector("#backToCalendarButton"),
@@ -362,6 +430,7 @@ const elements = {
   employeeNumber: document.querySelector("#employeeNumber"),
   weekNumber: document.querySelector("#weekNumber"),
   dayNumber: document.querySelector("#dayNumber"),
+  workModeToggle: document.querySelector("#workModeToggle"),
   languageSelect: document.querySelector("#languageSelect"),
   defaultPlace: document.querySelector("#defaultPlace"),
   rows: document.querySelector("#rows"),
@@ -372,6 +441,7 @@ const elements = {
   addRowButton: document.querySelector("#addRowButton"),
   meetingButton: document.querySelector("#meetingButton"),
   placeButton: document.querySelector("#placeButton"),
+  timeOffButton: document.querySelector("#timeOffButton"),
   copyButton: document.querySelector("#copyButton"),
   shareButton: document.querySelector("#shareButton"),
   printButton: document.querySelector("#printButton"),
@@ -435,7 +505,8 @@ function saveSettings() {
     vibration: state.vibration,
     sound: state.sound,
     theme: state.theme,
-    screenMode: state.screenMode
+    screenMode: state.screenMode,
+    workMode: state.workMode
   }));
 }
 
@@ -450,6 +521,7 @@ function loadSettings() {
   state.sound = savedSettings.sound === true;
   state.theme = savedSettings.theme === "dark" ? "dark" : "light";
   state.screenMode = "computer";
+  state.workMode = normalizeWorkMode(savedSettings.workMode || savedProfile.workMode || state.workMode);
 }
 
 function syncSettingsControls() {
@@ -464,6 +536,12 @@ function syncSettingsControls() {
   }
   if (elements.themeToggle) {
     elements.themeToggle.checked = state.theme === "dark";
+  }
+}
+
+function syncWorkModeControl() {
+  if (elements.workModeToggle) {
+    elements.workModeToggle.checked = state.workMode === "variable";
   }
 }
 
@@ -538,12 +616,28 @@ function setSettingsPanelOpen(isOpen) {
 
   elements.settingsPanel.hidden = !isOpen;
   elements.settingsButton.setAttribute("aria-expanded", String(isOpen));
-  document.body.classList.toggle("modal-open", isOpen);
+  document.body.classList.toggle("modal-open", isOpen || (elements.calendarLegendPanel && !elements.calendarLegendPanel.hidden));
 
   if (isOpen) {
     elements.closeSettingsButton?.focus();
   } else {
     elements.settingsButton.focus();
+  }
+}
+
+function setCalendarLegendOpen(isOpen) {
+  if (!elements.calendarLegendPanel || !elements.calendarHelpButton) {
+    return;
+  }
+
+  elements.calendarLegendPanel.hidden = !isOpen;
+  elements.calendarHelpButton.setAttribute("aria-expanded", String(isOpen));
+  document.body.classList.toggle("modal-open", isOpen || (elements.settingsPanel && !elements.settingsPanel.hidden));
+
+  if (isOpen) {
+    elements.closeCalendarLegendButton?.focus();
+  } else {
+    elements.calendarHelpButton.focus();
   }
 }
 
@@ -625,6 +719,157 @@ function getSavedEntry(dateKey) {
   return {};
 }
 
+function getSavedDateKeys() {
+  const keys = new Set();
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (key?.startsWith(STORAGE_PREFIX)) {
+      keys.add(key.slice(STORAGE_PREFIX.length));
+    }
+  }
+
+  if (localStorage.getItem(LEGACY_STORAGE_KEY)) {
+    keys.add(formatDateKey(new Date()));
+  }
+
+  return Array.from(keys).sort();
+}
+
+function normalizeWorkMode(value) {
+  return value === "normal" ? "normal" : "variable";
+}
+
+function getShiftEndForMode(mode = state.workMode, dayNumber = state.dayNumber) {
+  const shiftMode = WORK_MODES[normalizeWorkMode(mode)] || WORK_MODES.variable;
+  return dayNumber === "5" ? shiftMode.fridayEnd : shiftMode.regularEnd;
+}
+
+function getNormalShiftEnd(dayNumber = state.dayNumber) {
+  return getShiftEndForMode("normal", dayNumber);
+}
+
+function getVariableShiftEnd(dayNumber = state.dayNumber) {
+  return getShiftEndForMode("variable", dayNumber);
+}
+
+function getSavedLatestEndMinutes(saved, fallbackMinutes = 0) {
+  if (!Array.isArray(saved.rows)) {
+    return fallbackMinutes;
+  }
+
+  return saved.rows
+    .filter((row) => row?.type !== "pause" && row?.type !== "timeOff")
+    .map((row) => parseTimeToMinutes(row.end))
+    .filter((minutes) => minutes !== null)
+    .reduce((latest, minutes) => Math.max(latest, minutes), fallbackMinutes);
+}
+
+function getSavedRowCountedMinutes(row) {
+  if (!row || row.type === "pause") {
+    return 0;
+  }
+  return Math.max(0, getDurationMinutes(row.start, row.end) - getPauseOverlapMinutes(row.start, row.end));
+}
+
+function getEntryWorkMode(dateKey, saved = getSavedEntry(dateKey)) {
+  if (saved.workMode) {
+    return normalizeWorkMode(saved.workMode);
+  }
+
+  const date = parseDateKey(dateKey);
+  const dayNumber = saved.dayNumber || getWorkDayNumber(date);
+  const normalEnd = parseTimeToMinutes(getNormalShiftEnd(dayNumber)) || 0;
+  const latestEnd = getSavedLatestEndMinutes(saved, normalEnd);
+  return latestEnd > normalEnd ? "variable" : "normal";
+}
+
+function formatDurationClock(totalMinutes) {
+  const sign = totalMinutes < 0 ? "-" : "";
+  const absolute = Math.abs(totalMinutes);
+  const hours = Math.floor(absolute / 60);
+  const minutes = absolute % 60;
+  return `${sign}${hours}:${String(minutes).padStart(2, "0")}`;
+}
+
+function minutesToTimeValue(totalMinutes) {
+  const dayMinutes = ((totalMinutes % (24 * 60)) + 24 * 60) % (24 * 60);
+  const hours = Math.floor(dayMinutes / 60);
+  const minutes = dayMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function isDefaultPauseMinute(totalMinutes) {
+  return DEFAULT_PAUSES.some((pause) => {
+    const start = parseTimeToMinutes(pause.start);
+    const end = parseTimeToMinutes(pause.end);
+    return start !== null && end !== null && totalMinutes >= start && totalMinutes < end;
+  });
+}
+
+function addCountedMinutesSkippingPauses(startValue, countedMinutes) {
+  let cursor = parseTimeToMinutes(startValue);
+  if (cursor === null || countedMinutes <= 0) {
+    return startValue;
+  }
+
+  let remaining = countedMinutes;
+  while (remaining > 0) {
+    if (!isDefaultPauseMinute(cursor)) {
+      remaining -= 1;
+    }
+    cursor += 1;
+  }
+
+  return minutesToTimeValue(cursor);
+}
+
+function getEntryExtraMinutes(dateKey, saved = getSavedEntry(dateKey)) {
+  const date = parseDateKey(dateKey);
+  const dayNumber = saved.dayNumber || getWorkDayNumber(date);
+  const normalEnd = parseTimeToMinutes(getNormalShiftEnd(dayNumber));
+  if (normalEnd === null || !Array.isArray(saved.rows)) {
+    return 0;
+  }
+
+  const latestEnd = getSavedLatestEndMinutes(saved, normalEnd);
+
+  return Math.max(0, latestEnd - normalEnd);
+}
+
+function getEntryTimeOffMinutes(saved = {}) {
+  if (!Array.isArray(saved.rows)) {
+    return 0;
+  }
+  return saved.rows
+    .filter((row) => row?.type === "timeOff")
+    .reduce((sum, row) => sum + getSavedRowCountedMinutes(row), 0);
+}
+
+function getEntryOverModeMinutes(dateKey, saved = getSavedEntry(dateKey)) {
+  const date = parseDateKey(dateKey);
+  const dayNumber = saved.dayNumber || getWorkDayNumber(date);
+  const mode = getEntryWorkMode(dateKey, saved);
+  const plannedEnd = parseTimeToMinutes(getShiftEndForMode(mode, dayNumber));
+  if (plannedEnd === null || !Array.isArray(saved.rows)) {
+    return 0;
+  }
+
+  const latestEnd = getSavedLatestEndMinutes(saved, plannedEnd);
+  return Math.max(0, latestEnd - plannedEnd);
+}
+
+function getAccumulatedExtraMinutes() {
+  return getSavedDateKeys().reduce((sum, dateKey) => (
+    sum + getEntryExtraMinutes(dateKey) - getEntryTimeOffMinutes(getSavedEntry(dateKey))
+  ), 0);
+}
+
+function updateAccumulatedExtra() {
+  if (elements.accumulatedExtraTime) {
+    elements.accumulatedExtraTime.textContent = formatDurationClock(getAccumulatedExtraMinutes());
+  }
+}
+
 function getProfile() {
   return readJsonStorage(PROFILE_STORAGE_KEY);
 }
@@ -634,7 +879,8 @@ function saveProfile(fullName, employeeNumber, defaultPlace) {
     fullName,
     employeeNumber,
     defaultPlace,
-    language: state.language
+    language: state.language,
+    workMode: state.workMode
   }));
 }
 
@@ -735,6 +981,10 @@ function normalizeRowsLanguage() {
     if (row.type === "meeting" || row.place.value === "114") {
       row.series.value = t("meeting");
     }
+    if (isTimeOffRow(row)) {
+      row.place.value = t("timeOff");
+      row.series.value = "";
+    }
   });
 }
 
@@ -792,12 +1042,27 @@ function renderCalendar() {
       const date = new Date(weekDate);
       date.setDate(weekDate.getDate() + dayIndex);
       const dateKey = formatDateKey(date);
+      const saved = getSavedEntry(dateKey);
+      const isSaved = hasSavedEntry(dateKey);
       const button = document.createElement("button");
       button.className = "calendar-day";
       button.type = "button";
-      button.textContent = date.getDate();
       button.setAttribute("aria-label", formatDisplayDate(date));
       button.dataset.date = dateKey;
+
+      const dayNumber = document.createElement("span");
+      dayNumber.className = "calendar-day-number";
+      dayNumber.textContent = date.getDate();
+      button.appendChild(dayNumber);
+
+      if (isSaved) {
+        const mode = getEntryWorkMode(dateKey, saved);
+        const modeMark = document.createElement("span");
+        modeMark.className = `calendar-mode-mark ${mode === "variable" ? "is-variable" : "is-normal"}`;
+        modeMark.textContent = mode === "variable" ? "V" : "N";
+        modeMark.setAttribute("aria-label", mode === "variable" ? t("variableMode") : t("normalMode"));
+        button.appendChild(modeMark);
+      }
 
       if (date.getMonth() !== monthDate.getMonth()) {
         button.classList.add("is-outside");
@@ -805,14 +1070,43 @@ function renderCalendar() {
       if (dateKey === todayKey) {
         button.classList.add("is-today");
       }
-      if (hasSavedEntry(dateKey)) {
+      if (isSaved) {
         button.classList.add("has-entry");
+      }
+      if (getEntryOverModeMinutes(dateKey, saved) > 0) {
+        button.classList.add("has-extra");
+      }
+      if (getEntryTimeOffMinutes(saved) > 0) {
+        button.classList.add("has-time-off");
+      }
+
+      if (button.classList.contains("has-entry") || button.classList.contains("has-extra") || button.classList.contains("has-time-off")) {
+        const dots = document.createElement("span");
+        dots.className = "calendar-dots";
+        if (button.classList.contains("has-entry")) {
+          const dot = document.createElement("span");
+          dot.className = "calendar-dot is-green";
+          dots.appendChild(dot);
+        }
+        if (button.classList.contains("has-extra")) {
+          const dot = document.createElement("span");
+          dot.className = "calendar-dot is-blue";
+          dots.appendChild(dot);
+        }
+        if (button.classList.contains("has-time-off")) {
+          const dot = document.createElement("span");
+          dot.className = "calendar-dot is-yellow";
+          dots.appendChild(dot);
+        }
+        button.appendChild(dots);
       }
 
       button.addEventListener("click", () => openEditor(dateKey));
       elements.calendarGrid.appendChild(button);
     }
   }
+
+  updateAccumulatedExtra();
 }
 
 function updateSelectedDateLabel() {
@@ -826,6 +1120,9 @@ function updateSelectedDateLabel() {
 
 function showCalendar() {
   elements.calendarView.hidden = false;
+  if (elements.calendarExtraPanel) {
+    elements.calendarExtraPanel.hidden = false;
+  }
   elements.editorView.hidden = true;
   saveView("calendar");
   renderCalendar();
@@ -833,6 +1130,9 @@ function showCalendar() {
 
 function showEditor() {
   elements.calendarView.hidden = true;
+  if (elements.calendarExtraPanel) {
+    elements.calendarExtraPanel.hidden = true;
+  }
   elements.editorView.hidden = false;
   updateSelectedDateLabel();
   saveView("editor");
@@ -1009,11 +1309,19 @@ function moveTimeAfterPause(value) {
 }
 
 function getShiftEnd() {
-  return state.dayNumber === "5" ? "15:00" : "15:05";
+  return getShiftEndForMode(state.workMode, state.dayNumber);
 }
 
 function getShiftWindowText() {
   return `${SHIFT_START}-${getShiftEnd()}`;
+}
+
+function getWorkModeText(mode = state.workMode) {
+  return normalizeWorkMode(mode) === "variable" ? "Variable" : "Normal";
+}
+
+function getPlannedDayMinutes() {
+  return Math.max(0, getDurationMinutes(SHIFT_START, getShiftEnd()) - getPauseOverlapMinutes(SHIFT_START, getShiftEnd()));
 }
 
 function getNextStartTime() {
@@ -1064,6 +1372,10 @@ function isPlaceOnlyRow(row) {
   return row.type === "place";
 }
 
+function isTimeOffRow(row) {
+  return row.type === "timeOff";
+}
+
 function getTotalsSummary(rowMinutes) {
   return state.rows.reduce((summary, row, index) => {
     if (row.type === "pause") {
@@ -1102,6 +1414,7 @@ function saveState() {
     employeeNumber: elements.employeeNumber.value,
     weekNumber: elements.weekNumber.value,
     dayNumber: elements.dayNumber.value,
+    workMode: state.workMode,
     language: state.language,
     languagePreferenceSet: state.languagePreferenceSet,
     defaultPlace: getDefaultPlace(),
@@ -1124,7 +1437,7 @@ function buildPreview(rowUnits, summary) {
   const lines = [
     `${t("fullName")}: ${elements.firstName.value || "__________"}`,
     `${t("employeeNumber")}: ${elements.employeeNumber.value || "__________"} | ${t("week")}: ${elements.weekNumber.value || "__"} | ${t("day")}: ${elements.dayNumber.value} (${getDayName(elements.dayNumber.value)})`,
-    `${t("shift")}: ${getShiftWindowText()}`,
+    `${t("shift")}: ${getShiftWindowText()} | ${t("period")}: ${getWorkModeText()}`,
     "",
     `${t("work")}:`
   ];
@@ -1141,7 +1454,9 @@ function buildPreview(rowUnits, summary) {
       const end = row.end.value || "__:__";
       const rowParts = [`${index + 1}. ${place}`];
 
-      if (isMeetingRow(row)) {
+      if (isTimeOffRow(row)) {
+        rowParts[0] = `${index + 1}. ${t("timeOff")}`;
+      } else if (isMeetingRow(row)) {
         rowParts.push(series);
       } else if (!isPlaceOnlyRow(row)) {
         rowParts.push(`${t("series")} ${series}`);
@@ -1401,11 +1716,13 @@ function updateMoveButtons() {
 function applyRowType(row) {
   const isPause = row.type === "pause";
   const isPlaceOnly = isPlaceOnlyRow(row);
+  const isTimeOff = isTimeOffRow(row);
   row.element.classList.toggle("pause-row", isPause);
   row.element.classList.toggle("place-row", isPlaceOnly);
+  row.element.classList.toggle("time-off-row", isTimeOff);
   row.element.dataset.type = row.type;
-  row.place.readOnly = isPause;
-  row.series.readOnly = isPause || isPlaceOnly;
+  row.place.readOnly = isPause || isTimeOff;
+  row.series.readOnly = isPause || isPlaceOnly || isTimeOff;
   row.start.type = "text";
   row.end.type = "text";
   row.start.readOnly = false;
@@ -1419,6 +1736,11 @@ function applyRowType(row) {
   if (isPause) {
     row.place.value = t("pause");
     row.series.value = t("pause");
+  } else if (isTimeOff) {
+    row.place.value = t("timeOff");
+    row.series.value = "";
+    row.series.placeholder = "";
+    row.series.removeAttribute("data-i18n-placeholder");
   } else if (isPlaceOnly) {
     row.series.value = "";
     row.series.placeholder = "";
@@ -1446,8 +1768,8 @@ function addRow(values = {}) {
     type: values.type ?? "work"
   };
 
-  row.place.value = values.place ?? (row.type === "pause" ? "-" : (row.type === "place" ? "" : getDefaultPlace()));
-  row.series.value = row.type === "place" ? "" : (values.series ?? "");
+  row.place.value = values.place ?? (row.type === "pause" ? "-" : (row.type === "place" ? "" : (row.type === "timeOff" ? t("timeOff") : getDefaultPlace())));
+  row.series.value = (row.type === "place" || row.type === "timeOff") ? "" : (values.series ?? "");
   if (row.type === "pause") {
     row.start.value = parseTimeToMinutes(values.start) === null ? defaultPause.start : values.start;
     row.end.value = parseTimeToMinutes(values.end) === null ? defaultPause.end : values.end;
@@ -1481,6 +1803,28 @@ function addPlaceRow() {
     start: getNextStartTime(),
     end: getShiftEnd(),
     type: "place"
+  });
+}
+
+function addTimeOffRow() {
+  const rowMinutes = state.rows.map(getRowMinutes);
+  const summary = getTotalsSummary(rowMinutes);
+  const missingMinutes = Math.max(0, getPlannedDayMinutes() - summary.totalMinutes);
+  const availableMinutes = Math.max(0, getAccumulatedExtraMinutes());
+  const timeOffMinutes = Math.min(missingMinutes, availableMinutes);
+  if (timeOffMinutes <= 0) {
+    return;
+  }
+
+  const start = getNextStartTime();
+  const fullEnd = getShiftEnd();
+  const fullRemaining = Math.max(0, getDurationMinutes(start, fullEnd) - getPauseOverlapMinutes(start, fullEnd));
+  addRow({
+    place: t("timeOff"),
+    series: "",
+    start,
+    end: timeOffMinutes >= fullRemaining ? fullEnd : addCountedMinutesSkippingPauses(start, timeOffMinutes),
+    type: "timeOff"
   });
 }
 
@@ -1530,6 +1874,8 @@ function loadSavedState(dateKey) {
   elements.weekNumber.value = saved.weekNumber || getIsoWeek(selectedDate);
   elements.dayNumber.value = saved.dayNumber || getWorkDayNumber(selectedDate);
   state.dayNumber = elements.dayNumber.value;
+  state.workMode = saved.workMode ? normalizeWorkMode(saved.workMode) : state.workMode;
+  syncWorkModeControl();
   elements.languageSelect.value = state.language;
   elements.defaultPlace.value = saved.defaultPlace || profile.defaultPlace || "440";
   if (elements.commentText) {
@@ -1636,6 +1982,14 @@ async function sharePdf() {
 
 elements.commentText?.addEventListener("input", saveState);
 
+elements.workModeToggle?.addEventListener("change", () => {
+  state.workMode = elements.workModeToggle.checked ? "variable" : "normal";
+  syncWorkModeControl();
+  saveSettings();
+  updateTotals();
+  playFeedback();
+});
+
 elements.dayNumber.addEventListener("change", () => {
   const previousShiftEnd = getShiftEnd();
   state.dayNumber = elements.dayNumber.value;
@@ -1662,6 +2016,16 @@ elements.closeSettingsButton?.addEventListener("click", () => {
   playFeedback();
 });
 
+elements.calendarHelpButton?.addEventListener("click", () => {
+  setCalendarLegendOpen(elements.calendarLegendPanel ? elements.calendarLegendPanel.hidden : false);
+  playFeedback();
+});
+
+elements.closeCalendarLegendButton?.addEventListener("click", () => {
+  setCalendarLegendOpen(false);
+  playFeedback();
+});
+
 elements.settingsPanel?.addEventListener("click", (event) => {
   if (event.target === elements.settingsPanel) {
     setSettingsPanelOpen(false);
@@ -1669,9 +2033,20 @@ elements.settingsPanel?.addEventListener("click", (event) => {
   }
 });
 
+elements.calendarLegendPanel?.addEventListener("click", (event) => {
+  if (event.target === elements.calendarLegendPanel) {
+    setCalendarLegendOpen(false);
+    playFeedback();
+  }
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && elements.settingsPanel && !elements.settingsPanel.hidden) {
     setSettingsPanelOpen(false);
+    playFeedback();
+  }
+  if (event.key === "Escape" && elements.calendarLegendPanel && !elements.calendarLegendPanel.hidden) {
+    setCalendarLegendOpen(false);
     playFeedback();
   }
 });
@@ -1735,6 +2110,10 @@ elements.placeButton.addEventListener("click", () => {
   addPlaceRow();
   playFeedback();
 });
+elements.timeOffButton.addEventListener("click", () => {
+  addTimeOffRow();
+  playFeedback();
+});
 elements.copyButton.addEventListener("click", () => {
   copyPreview();
   playFeedback();
@@ -1750,6 +2129,7 @@ elements.printButton.addEventListener("click", () => {
 
 loadSettings();
 syncSettingsControls();
+syncWorkModeControl();
 applyTheme();
 applyScreenMode();
 if (elements.appVersion) {

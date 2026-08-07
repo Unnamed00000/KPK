@@ -11,7 +11,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=1.4.11">
+    <link rel="stylesheet" href="styles.css?v=1.4.23">
   </head>
   <body>
     <main class="app-shell">
@@ -75,7 +75,7 @@
 
             <article class="settings-info">
               <h3 data-i18n="version">Version</h3>
-              <p id="appVersion">v1.4.11</p>
+              <p id="appVersion">v1.4.23</p>
             </article>
 
             <article class="settings-info">
@@ -97,6 +97,7 @@
             <h2 data-i18n="calendar">Kalender</h2>
             <p class="calendar-hint" data-i18n="calendarHint">Vælg en dato for at udfylde arbejdssedlen.</p>
           </div>
+          <button class="calendar-help-button" id="calendarHelpButton" type="button" title="Forklaring" data-i18n-title="calendarLegendTitle">?</button>
           <div class="calendar-nav">
             <button class="icon-button" id="prevMonthButton" type="button" title="Forrige måned" data-i18n-title="previousMonth">‹</button>
             <strong id="calendarTitle"></strong>
@@ -104,6 +105,28 @@
           </div>
         </div>
         <div class="calendar-grid" id="calendarGrid"></div>
+      </section>
+
+      <section class="calendar-extra" id="calendarExtraPanel" aria-live="polite" hidden>
+        <span data-i18n="accumulatedExtra">Afspadsering</span>
+        <strong id="accumulatedExtraTime">0:00</strong>
+      </section>
+
+      <section class="legend-panel" id="calendarLegendPanel" role="dialog" aria-modal="true" aria-label="Forklaring" data-i18n-aria-label="calendarLegendTitle" hidden>
+        <div class="legend-dialog">
+          <div class="section-head">
+            <h2 data-i18n="calendarLegendTitle">Forklaring</h2>
+            <button class="icon-button" id="closeCalendarLegendButton" type="button" title="Luk" data-i18n-title="close">×</button>
+          </div>
+          <div class="legend-list">
+            <p><span class="legend-dot is-green"></span><span data-i18n="legendGreen">Grøn prik: dagen er udfyldt.</span></p>
+            <p><span class="legend-dot is-blue"></span><span data-i18n="legendBlue">Blå prik: der er arbejdet mere end dagens valgte N/V-plan.</span></p>
+            <p><span class="legend-dot is-yellow"></span><span data-i18n="legendYellow">Gul prik: der er brugt afspadsering den dag.</span></p>
+            <p><span class="legend-mark">N</span><span data-i18n="legendNormal">Orange N: normal arbejdstid.</span></p>
+            <p><span class="legend-mark">V</span><span data-i18n="legendVariable">Orange V: variable arbejdstid.</span></p>
+            <p><span class="legend-outline"></span><span data-i18n="legendToday">Grøn kant: dags dato.</span></p>
+          </div>
+        </div>
       </section>
 
       <div class="editor-view" id="editorView" hidden>
@@ -141,10 +164,18 @@
       <section class="table-section" aria-label="Arbejde for dagen">
         <div class="section-head">
           <h2 data-i18n="seriesAndTime">Serier og tid</h2>
+          <label class="work-mode-toggle">
+            <input id="workModeToggle" type="checkbox" checked>
+            <span class="work-mode-track">
+              <span class="mode-normal">N</span>
+              <span class="mode-variable">V</span>
+            </span>
+          </label>
           <div class="row-actions">
             <button class="text-button" id="addRowButton" type="button" data-i18n="addSeries">+ Serie</button>
             <button class="text-button" id="meetingButton" type="button" data-i18n="addMeeting">+ Møde</button>
             <button class="text-button" id="placeButton" type="button" data-i18n="addPlace">+ Plads</button>
+            <button class="text-button" id="timeOffButton" type="button" data-i18n="addTimeOff">+ Afsp.</button>
           </div>
         </div>
 
@@ -226,6 +257,6 @@
       </div>
     </template>
 
-    <script src="script.js?v=1.4.11"></script>
+    <script src="script.js?v=1.4.23"></script>
   </body>
 </html>
