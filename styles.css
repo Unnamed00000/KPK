@@ -565,7 +565,7 @@ textarea {
 
 .payroll-panel {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.35fr) minmax(58px, 0.75fr);
   gap: 8px;
   margin-top: 12px;
   padding: 10px 12px;
@@ -590,11 +590,21 @@ textarea {
 }
 
 .payroll-panel strong {
-  overflow: hidden;
   color: var(--accent-dark);
-  font-size: clamp(0.74rem, 2.7vw, 1rem);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: clamp(0.72rem, 2.45vw, 0.96rem);
+  line-height: 1.2;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+@media (max-width: 430px) {
+  .payroll-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(76px, 0.72fr);
+  }
+
+  .payroll-panel article:first-child {
+    grid-column: 1 / -1;
+  }
 }
 
 .calendar-extra[hidden] {
