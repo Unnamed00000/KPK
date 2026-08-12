@@ -374,7 +374,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.36";
+const APP_VERSION = "1.4.37";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -783,6 +783,62 @@ function getSavedRowCountedMinutes(row) {
   return mainMinutes + extraMinutes;
 }
 
+function isSavedMeetingRow(row) {
+  return row?.type === "meeting" || String(row?.place || "").trim() === "114";
+}
+
+function getSavedRowRanges(row) {
+  return [
+    { start: row?.start, end: row?.end },
+    ...((Array.isArray(row?.extraTimes) ? row.extraTimes : []).map((item) => ({
+      start: item?.start,
+      end: item?.end
+    })))
+  ];
+}
+
+function getSavedMeetingWindows(savedRows, exceptRow = null) {
+  return savedRows
+    .filter((row) => row !== exceptRow && isSavedMeetingRow(row))
+    .flatMap((row) => getSavedRowRanges(row))
+    .map((range) => getTimeWindow(range.start, range.end))
+    .filter(Boolean);
+}
+
+function getSavedRangePieces(row, range, savedRows, countedWindows) {
+  if (row?.type === "pause") {
+    const pauseWindow = getTimeWindow(range.start, range.end);
+    return pauseWindow ? [pauseWindow] : [];
+  }
+
+  const excludedWindows = getDefaultPauseWindows();
+  if (!isSavedMeetingRow(row)) {
+    excludedWindows.push(...getSavedMeetingWindows(savedRows, row));
+  }
+  excludedWindows.push(...countedWindows);
+
+  return subtractWindows(getTimeWindow(range.start, range.end), excludedWindows);
+}
+
+function getSavedTotalCountedMinutes(saved = {}) {
+  if (!Array.isArray(saved.rows)) {
+    return 0;
+  }
+
+  const savedRows = saved.rows.filter((row) => row?.type !== "pause");
+  const countedWindows = [];
+  return savedRows.reduce((total, row) => {
+    const rowMinutes = getSavedRowRanges(row).reduce((sum, range) => {
+      const pieces = getSavedRangePieces(row, range, savedRows, countedWindows);
+      if (row?.type !== "pause") {
+        countedWindows.push(...pieces);
+      }
+      return sum + sumWindows(pieces);
+    }, 0);
+    return total + rowMinutes;
+  }, 0);
+}
+
 function getEntryWorkMode(dateKey, saved = getSavedEntry(dateKey)) {
   if (saved.workMode) {
     return normalizeWorkMode(saved.workMode);
@@ -861,13 +917,13 @@ function getEntryOverModeMinutes(dateKey, saved = getSavedEntry(dateKey)) {
   const date = parseDateKey(dateKey);
   const dayNumber = saved.dayNumber || getWorkDayNumber(date);
   const mode = getEntryWorkMode(dateKey, saved);
-  const plannedEnd = parseTimeToMinutes(getShiftEndForMode(mode, dayNumber));
-  if (plannedEnd === null || !Array.isArray(saved.rows)) {
+  if (!Array.isArray(saved.rows)) {
     return 0;
   }
 
-  const latestEnd = getSavedLatestEndMinutes(saved, plannedEnd);
-  return Math.max(0, latestEnd - plannedEnd);
+  const plannedMinutes = getPlannedDayMinutesForMode(mode, dayNumber);
+  const countedMinutes = getSavedTotalCountedMinutes(saved);
+  return Math.max(0, countedMinutes - plannedMinutes);
 }
 
 function getAccumulatedExtraMinutes() {
@@ -1220,6 +1276,9 @@ function normalizeSeriesInput(input, event) {
 }
 
 function minutesToUnits(totalMinutes) {
+  if (totalMinutes === 440) {
+    return 732;
+  }
   if (totalMinutes === 500) {
     return 832;
   }
@@ -1402,8 +1461,13 @@ function getWorkModeText(mode = state.workMode) {
   return normalizeWorkMode(mode) === "variable" ? "Variable" : "Normal";
 }
 
+function getPlannedDayMinutesForMode(mode = state.workMode, dayNumber = state.dayNumber) {
+  const plannedEnd = getShiftEndForMode(mode, dayNumber);
+  return Math.max(0, getDurationMinutes(SHIFT_START, plannedEnd) - getPauseOverlapMinutes(SHIFT_START, plannedEnd));
+}
+
 function getPlannedDayMinutes() {
-  return Math.max(0, getDurationMinutes(SHIFT_START, getShiftEnd()) - getPauseOverlapMinutes(SHIFT_START, getShiftEnd()));
+  return getPlannedDayMinutesForMode();
 }
 
 function getNextStartTime() {
