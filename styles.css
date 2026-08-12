@@ -564,13 +564,11 @@ textarea {
 }
 
 .payroll-panel {
-  --payroll-font-size: clamp(0.58rem, 2.35vw, 0.96rem);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  --payroll-font-size: clamp(0.74rem, 2.5vw, 0.96rem);
+  display: grid;
   gap: 0;
   margin-top: 12px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: 8px;
   background: var(--panel-strong);
 }
@@ -582,40 +580,40 @@ textarea {
 .payroll-panel article {
   display: flex;
   align-items: baseline;
-  justify-content: center;
-  gap: 4px;
-  flex: 1 1 0;
+  justify-content: space-between;
+  gap: 12px;
   min-width: 0;
+  padding: 6px 0;
   white-space: nowrap;
 }
 
 .payroll-panel article:first-child {
-  justify-content: flex-start;
-  flex: 1.45 1 0;
+  justify-content: space-between;
 }
 
 .payroll-panel article:last-child {
-  justify-content: flex-end;
-  flex: 0.75 1 0;
+  justify-content: space-between;
 }
 
 .payroll-panel article + article {
-  border-left: 1px solid var(--line);
-  margin-left: 8px;
-  padding-left: 8px;
+  border-top: 1px solid var(--line);
 }
 
 .payroll-panel span {
   color: var(--muted);
-  font-size: calc(var(--payroll-font-size) * 0.78);
+  flex: 0 0 auto;
+  font-size: calc(var(--payroll-font-size) * 0.86);
   font-weight: 800;
   line-height: 1.05;
+  text-align: left;
 }
 
 .payroll-panel strong {
   color: var(--accent-dark);
+  flex: 1 1 auto;
   font-size: var(--payroll-font-size);
   line-height: 1.05;
+  text-align: right;
   white-space: nowrap;
   word-break: keep-all;
 }
@@ -627,12 +625,7 @@ textarea {
   }
 
   .payroll-panel article {
-    gap: 3px;
-  }
-
-  .payroll-panel article + article {
-    margin-left: 4px;
-    padding-left: 4px;
+    gap: 8px;
   }
 }
 

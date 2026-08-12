@@ -442,7 +442,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.46";
+const APP_VERSION = "1.4.47";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -720,12 +720,11 @@ function fitPayrollPanelText() {
   const baseSize = 14;
   context.font = `800 ${baseSize}px ${style.fontFamily}`;
 
-  const textWidth = articles.reduce((sum, article) => {
+  const rowWidths = articles.map((article) => {
     const text = article.textContent.trim().replace(/\s+/g, " ");
-    return sum + context.measureText(text).width;
-  }, 0);
-  const dividerWidth = Math.max(0, articles.length - 1) * 18;
-  const neededWidth = textWidth + dividerWidth;
+    return context.measureText(text).width + 12;
+  });
+  const neededWidth = Math.max(...rowWidths);
   if (!Number.isFinite(neededWidth) || neededWidth <= 0) {
     return;
   }
