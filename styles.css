@@ -1011,7 +1011,6 @@ button:focus-visible {
 .extra-time-row {
   min-height: 42px;
   padding-top: 2px;
-  border-top: 1px dashed var(--line);
 }
 
 .extra-total-row {
@@ -1050,6 +1049,11 @@ button:focus-visible {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+#rows > .work-row + .work-row {
+  padding-top: 8px;
+  border-top: 2px solid var(--line);
 }
 
 .work-row label span {
