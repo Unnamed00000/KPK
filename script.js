@@ -26,6 +26,9 @@ const I18N = {
     normalMode: "Normal",
     variableMode: "Variable",
     accumulatedExtra: "Afspadsering",
+    payPeriod: "Період зарплати",
+    payDate: "Виплата",
+    payTime: "Години",
     calendarLegendTitle: "Forklaring",
     legendGreen: "Зелена точка: день заповнений.",
     legendBlue: "Синя точка: робота понад вибраний план N/V.",
@@ -133,6 +136,9 @@ const I18N = {
     normalMode: "Normal",
     variableMode: "Variable",
     accumulatedExtra: "Afspadsering",
+    payPeriod: "Lønperiode",
+    payDate: "Udbetaling",
+    payTime: "Timer",
     calendarLegendTitle: "Forklaring",
     legendGreen: "Grøn prik: dagen er udfyldt.",
     legendBlue: "Blå prik: der er arbejdet mere end dagens valgte N/V-plan.",
@@ -240,6 +246,9 @@ const I18N = {
     normalMode: "Normal",
     variableMode: "Variable",
     accumulatedExtra: "Afspadsering",
+    payPeriod: "Pay period",
+    payDate: "Pay date",
+    payTime: "Hours",
     calendarLegendTitle: "Legend",
     legendGreen: "Green dot: the day has saved work.",
     legendBlue: "Blue dot: work is above the selected N/V plan.",
@@ -347,6 +356,9 @@ const I18N = {
     normalMode: "Normal",
     variableMode: "Variable",
     accumulatedExtra: "Afspadsering",
+    payPeriod: "Pay period",
+    payDate: "Pay date",
+    payTime: "Hours",
     calendarLegendTitle: "Legend",
     legendGreen: "Green dot: the day has saved work.",
     legendBlue: "Blue dot: work is above the selected N/V plan.",
@@ -430,7 +442,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.43";
+const APP_VERSION = "1.4.44";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -476,6 +488,10 @@ const elements = {
   editorView: document.querySelector("#editorView"),
   calendarGrid: document.querySelector("#calendarGrid"),
   calendarTitle: document.querySelector("#calendarTitle"),
+  payrollPanel: document.querySelector("#payrollPanel"),
+  payPeriodText: document.querySelector("#payPeriodText"),
+  payDateText: document.querySelector("#payDateText"),
+  payTimeText: document.querySelector("#payTimeText"),
   calendarExtraPanel: document.querySelector("#calendarExtraPanel"),
   calendarHelpButton: document.querySelector("#calendarHelpButton"),
   calendarLegendPanel: document.querySelector("#calendarLegendPanel"),
@@ -955,6 +971,46 @@ function getSavedDateKeys() {
   return Array.from(keys).sort();
 }
 
+function addDays(date, days) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
+function getNextPayday(fromDate = new Date()) {
+  const cursor = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+  for (let offset = 0; offset < 370; offset += 1) {
+    const candidate = addDays(cursor, offset);
+    if (candidate.getDay() === 4 && getIsoWeek(candidate) % 2 === 0) {
+      return candidate;
+    }
+  }
+  return cursor;
+}
+
+function getPayPeriodForPayday(payday) {
+  const payWeekStart = getWeekStart(payday);
+  const start = addDays(payWeekStart, -14);
+  const end = addDays(payWeekStart, -3);
+  return { start, end };
+}
+
+function getSavedMinutesInPeriod(startDate, endDate) {
+  let total = 0;
+  for (let cursor = new Date(startDate); cursor <= endDate; cursor = addDays(cursor, 1)) {
+    total += getSavedTotalCountedMinutes(getSavedEntry(formatDateKey(cursor)));
+  }
+  return total;
+}
+
+function formatShortDate(date) {
+  return new Intl.DateTimeFormat(getLocale(), {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(date);
+}
+
 function normalizeWorkMode(value) {
   return value === "normal" ? "normal" : "variable";
 }
@@ -1151,6 +1207,26 @@ function getAccumulatedExtraMinutes() {
 function updateAccumulatedExtra() {
   if (elements.accumulatedExtraTime) {
     elements.accumulatedExtraTime.textContent = formatDurationClock(getAccumulatedExtraMinutes());
+  }
+}
+
+function updatePayrollPanel() {
+  if (!elements.payrollPanel) {
+    return;
+  }
+
+  const payday = getNextPayday(new Date());
+  const period = getPayPeriodForPayday(payday);
+  const periodMinutes = getSavedMinutesInPeriod(period.start, period.end);
+
+  if (elements.payPeriodText) {
+    elements.payPeriodText.textContent = `${formatShortDate(period.start)}-${formatShortDate(period.end)}`;
+  }
+  if (elements.payDateText) {
+    elements.payDateText.textContent = `${formatShortDate(payday)} · ${t("week")} ${getIsoWeek(payday)}`;
+  }
+  if (elements.payTimeText) {
+    elements.payTimeText.textContent = formatUnits(minutesToUnits(periodMinutes));
   }
 }
 
@@ -1426,6 +1502,7 @@ function renderCalendar() {
   }
 
   updateAccumulatedExtra();
+  updatePayrollPanel();
 }
 
 function updateSelectedDateLabel() {
@@ -1439,6 +1516,9 @@ function updateSelectedDateLabel() {
 
 function showCalendar() {
   elements.calendarView.hidden = false;
+  if (elements.payrollPanel) {
+    elements.payrollPanel.hidden = false;
+  }
   if (elements.calendarExtraPanel) {
     elements.calendarExtraPanel.hidden = false;
   }
@@ -1449,6 +1529,9 @@ function showCalendar() {
 
 function showEditor() {
   elements.calendarView.hidden = true;
+  if (elements.payrollPanel) {
+    elements.payrollPanel.hidden = true;
+  }
   if (elements.calendarExtraPanel) {
     elements.calendarExtraPanel.hidden = true;
   }

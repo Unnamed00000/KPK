@@ -563,6 +563,40 @@ textarea {
   background: var(--panel-strong);
 }
 
+.payroll-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--panel-strong);
+}
+
+.payroll-panel[hidden] {
+  display: none;
+}
+
+.payroll-panel article {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.payroll-panel span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.payroll-panel strong {
+  overflow: hidden;
+  color: var(--accent-dark);
+  font-size: clamp(0.74rem, 2.7vw, 1rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .calendar-extra[hidden] {
   display: none;
 }
