@@ -982,21 +982,30 @@ button:focus-visible {
 .add-segment-button {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: -1px;
   transform: translate(-50%, 50%);
-  display: grid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
-  height: 16px;
-  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
   border: 2px solid var(--panel);
   border-radius: 50%;
   background: #1f9f63;
   color: #fff;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-family: Arial, sans-serif;
+  font-size: 0.86rem;
   font-weight: 900;
-  line-height: 1;
+  line-height: 18px;
   z-index: 2;
+}
+
+.add-segment-button {
+  width: 18px;
 }
 
 .add-segment-button:hover {
