@@ -797,6 +797,13 @@ textarea {
   background: #e5b82e;
 }
 
+.legend-sick-mark {
+  color: #c63f2a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: lowercase;
+}
+
 .calendar-dot.is-side {
   position: absolute;
   top: 50%;

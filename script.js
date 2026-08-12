@@ -35,6 +35,7 @@ const I18N = {
     legendGreen: "Зелена точка: день заповнений.",
     legendBlue: "Синя точка: робота понад вибраний план N/V.",
     legendYellow: "Жовта точка: цього дня використано afspadsering.",
+    legendSick: "Червоне syg: цього дня зареєстровано лікарняний.",
     legendNormal: "Помаранчева N: normal arbejdstid.",
     legendVariable: "Помаранчева V: variable arbejdstid.",
     legendToday: "Зелена рамка: сьогоднішня дата.",
@@ -149,6 +150,7 @@ const I18N = {
     legendGreen: "Grøn prik: dagen er udfyldt.",
     legendBlue: "Blå prik: der er arbejdet mere end dagens valgte N/V-plan.",
     legendYellow: "Gul prik: der er brugt afspadsering den dag.",
+    legendSick: "Rød syg: der er registreret sygdom den dag.",
     legendNormal: "Orange N: normal arbejdstid.",
     legendVariable: "Orange V: variable arbejdstid.",
     legendToday: "Grøn kant: dags dato.",
@@ -266,6 +268,7 @@ const I18N = {
     legendGreen: "Green dot: the day has saved work.",
     legendBlue: "Blue dot: work is above the selected N/V plan.",
     legendYellow: "Yellow dot: afspadsering was used that day.",
+    legendSick: "Red sick: sickness is registered that day.",
     legendNormal: "Orange N: normal work time.",
     legendVariable: "Orange V: variable work time.",
     legendToday: "Green outline: today.",
@@ -383,6 +386,7 @@ const I18N = {
     legendGreen: "Green dot: the day has saved work.",
     legendBlue: "Blue dot: work is above the selected N/V plan.",
     legendYellow: "Yellow dot: afspadsering was used that day.",
+    legendSick: "Red sick: sickness is registered that day.",
     legendNormal: "Orange N: normal work time.",
     legendVariable: "Orange V: variable work time.",
     legendToday: "Green outline: today.",
@@ -464,7 +468,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.57";
+const APP_VERSION = "1.4.58";
 const TEST_TODAY = "2026-08-17";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
