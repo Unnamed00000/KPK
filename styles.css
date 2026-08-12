@@ -798,6 +798,18 @@ textarea {
   font-size: clamp(0.72rem, 3vw, 0.9rem);
 }
 
+#dayActionPanel[data-mode="copy"] .day-action-buttons,
+#dayActionPanel[data-mode="move"] .day-action-buttons {
+  grid-template-columns: 1fr;
+}
+
+#dayActionPanel[data-mode="copy"] #moveDayButton,
+#dayActionPanel[data-mode="copy"] #clearDayButton,
+#dayActionPanel[data-mode="move"] #copyDayButton,
+#dayActionPanel[data-mode="move"] #clearDayButton {
+  display: none;
+}
+
 /* Keep the calendar landing screen within a typical desktop viewport. */
 @media (min-width: 681px) {
   .app-shell {

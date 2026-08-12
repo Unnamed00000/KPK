@@ -414,7 +414,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.39";
+const APP_VERSION = "1.4.40";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -713,6 +713,7 @@ function setDayActionPanelOpen(isOpen, dateKey = state.actionDate) {
   state.actionDate = isOpen ? dateKey : "";
   state.dayActionMode = "";
   elements.dayActionPanel.hidden = !isOpen;
+  elements.dayActionPanel.dataset.mode = "";
   if (elements.dayMoveControls) {
     elements.dayMoveControls.hidden = true;
   }
@@ -731,6 +732,9 @@ function setDayActionPanelOpen(isOpen, dateKey = state.actionDate) {
 
 function setDayMoveMode(mode) {
   state.dayActionMode = mode;
+  if (elements.dayActionPanel) {
+    elements.dayActionPanel.dataset.mode = mode;
+  }
   if (elements.dayMoveControls) {
     elements.dayMoveControls.hidden = false;
   }
