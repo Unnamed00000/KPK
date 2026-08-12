@@ -695,25 +695,25 @@ textarea {
 
 .calendar-mode-mark {
   position: absolute;
-  top: 4px;
+  top: 2px;
   display: grid;
-  min-width: 10px;
-  height: 12px;
+  min-width: 8px;
+  height: 10px;
   place-items: center;
   border-radius: 999px;
   background: transparent;
   color: #d96f1f;
-  font-size: 0.56rem;
+  font-size: 0.5rem;
   font-weight: 900;
   line-height: 1;
 }
 
 .calendar-mode-mark.is-normal {
-  left: 5px;
+  left: 2px;
 }
 
 .calendar-mode-mark.is-variable {
-  right: 5px;
+  right: 2px;
 }
 
 .calendar-day:hover {
