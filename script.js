@@ -472,7 +472,8 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.61";
+const APP_VERSION = "1.4.62";
+const FIREBASE_SDK_VERSION = "10.12.5";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1016,6 +1017,55 @@ function playFeedback() {
     oscillator.stop(audioContext.currentTime + 0.12);
   } catch {
     // Feedback is optional; older browsers can ignore it.
+  }
+}
+
+function isFirebaseAnalyticsHost() {
+  const host = window.location.hostname;
+  return window.location.protocol === "https:"
+    && !["localhost", "127.0.0.1"].includes(host)
+    && (host.endsWith(".web.app") || host.endsWith(".firebaseapp.com"));
+}
+
+function loadExternalScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.addEventListener("load", () => resolve());
+    script.addEventListener("error", () => reject(new Error(`Unable to load ${src}`)));
+    document.head.appendChild(script);
+  });
+}
+
+async function initAnonymousAnalytics() {
+  if (!isFirebaseAnalyticsHost() || window.__kpkAnalyticsStarted) {
+    return;
+  }
+
+  window.__kpkAnalyticsStarted = true;
+  try {
+    await loadExternalScript(`/__/firebase/${FIREBASE_SDK_VERSION}/firebase-app-compat.js`);
+    await loadExternalScript(`/__/firebase/${FIREBASE_SDK_VERSION}/firebase-analytics-compat.js`);
+    await loadExternalScript("/__/firebase/init.js");
+
+    if (!window.firebase?.analytics) {
+      return;
+    }
+
+    const analytics = window.firebase.analytics();
+    analytics.logEvent("kpk_app_open", {
+      app_version: APP_VERSION,
+      language: state.language,
+      display_mode: window.matchMedia("(display-mode: standalone)").matches ? "standalone" : "browser"
+    });
+  } catch {
+    // Analytics must never block local work or the main app.
   }
 }
 
@@ -3222,6 +3272,7 @@ fitSheetPreviewText();
 requestAnimationFrame(fitSheetPreviewText);
 fitPayrollPanelText();
 requestAnimationFrame(fitPayrollPanelText);
+initAnonymousAnalytics();
 window.addEventListener("resize", () => {
   updateTopbarClearance();
   fitSheetPreviewText();
