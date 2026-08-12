@@ -807,7 +807,7 @@ textarea {
 .calendar-dot.is-side {
   position: absolute;
   top: 50%;
-  right: 5px;
+  right: 2px;
   transform: translateY(-50%);
 }
 
