@@ -442,7 +442,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.45";
+const APP_VERSION = "1.4.46";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -691,6 +691,48 @@ function fitSheetPreviewText() {
   const maxSize = window.innerWidth <= 680 ? 15 : 16;
   const nextSize = Math.max(7, Math.min(maxSize, (availableWidth / longestWidth) * baseSize * 0.985));
   preview.style.setProperty("--preview-font-size", `${nextSize.toFixed(2)}px`);
+}
+
+function fitPayrollPanelText() {
+  const panel = elements.payrollPanel;
+  if (!panel || panel.hidden || panel.clientWidth === 0) {
+    return;
+  }
+
+  const articles = Array.from(panel.querySelectorAll("article"));
+  if (articles.length === 0) {
+    panel.style.removeProperty("--payroll-font-size");
+    return;
+  }
+
+  const style = getComputedStyle(panel);
+  const availableWidth = panel.clientWidth
+    - parseFloat(style.paddingLeft)
+    - parseFloat(style.paddingRight)
+    - 2;
+  if (availableWidth <= 0) {
+    return;
+  }
+
+  const canvas = fitPayrollPanelText.canvas || document.createElement("canvas");
+  fitPayrollPanelText.canvas = canvas;
+  const context = canvas.getContext("2d");
+  const baseSize = 14;
+  context.font = `800 ${baseSize}px ${style.fontFamily}`;
+
+  const textWidth = articles.reduce((sum, article) => {
+    const text = article.textContent.trim().replace(/\s+/g, " ");
+    return sum + context.measureText(text).width;
+  }, 0);
+  const dividerWidth = Math.max(0, articles.length - 1) * 18;
+  const neededWidth = textWidth + dividerWidth;
+  if (!Number.isFinite(neededWidth) || neededWidth <= 0) {
+    return;
+  }
+
+  const maxSize = window.innerWidth <= 430 ? 13 : 15;
+  const nextSize = Math.max(7, Math.min(maxSize, (availableWidth / neededWidth) * baseSize * 0.98));
+  panel.style.setProperty("--payroll-font-size", `${nextSize.toFixed(2)}px`);
 }
 
 function setUpdateStatus(messageKey) {
@@ -1228,6 +1270,7 @@ function updatePayrollPanel() {
   if (elements.payTimeText) {
     elements.payTimeText.textContent = formatUnits(minutesToUnits(periodMinutes));
   }
+  fitPayrollPanelText();
 }
 
 function getProfile() {
@@ -2995,17 +3038,22 @@ updateTopbarClearance();
 requestAnimationFrame(updateTopbarClearance);
 fitSheetPreviewText();
 requestAnimationFrame(fitSheetPreviewText);
+fitPayrollPanelText();
+requestAnimationFrame(fitPayrollPanelText);
 window.addEventListener("resize", () => {
   updateTopbarClearance();
   fitSheetPreviewText();
+  fitPayrollPanelText();
 });
 window.addEventListener("orientationchange", () => {
   window.setTimeout(updateTopbarClearance, 250);
   window.setTimeout(fitSheetPreviewText, 250);
+  window.setTimeout(fitPayrollPanelText, 250);
 });
 window.addEventListener("load", () => {
   updateTopbarClearance();
   fitSheetPreviewText();
+  fitPayrollPanelText();
 });
 
 if ("ResizeObserver" in window && elements.topbar) {

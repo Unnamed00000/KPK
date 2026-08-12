@@ -564,9 +564,11 @@ textarea {
 }
 
 .payroll-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1.35fr) minmax(58px, 0.75fr);
-  gap: 8px;
+  --payroll-font-size: clamp(0.58rem, 2.35vw, 0.96rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0;
   margin-top: 12px;
   padding: 10px 12px;
   border-radius: 8px;
@@ -578,32 +580,59 @@ textarea {
 }
 
 .payroll-panel article {
-  display: grid;
-  gap: 3px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  flex: 1 1 0;
   min-width: 0;
+  white-space: nowrap;
+}
+
+.payroll-panel article:first-child {
+  justify-content: flex-start;
+  flex: 1.45 1 0;
+}
+
+.payroll-panel article:last-child {
+  justify-content: flex-end;
+  flex: 0.75 1 0;
+}
+
+.payroll-panel article + article {
+  border-left: 1px solid var(--line);
+  margin-left: 8px;
+  padding-left: 8px;
 }
 
 .payroll-panel span {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: calc(var(--payroll-font-size) * 0.78);
   font-weight: 800;
+  line-height: 1.05;
 }
 
 .payroll-panel strong {
   color: var(--accent-dark);
-  font-size: clamp(0.72rem, 2.45vw, 0.96rem);
-  line-height: 1.2;
-  white-space: normal;
+  font-size: var(--payroll-font-size);
+  line-height: 1.05;
+  white-space: nowrap;
   word-break: keep-all;
 }
 
 @media (max-width: 430px) {
   .payroll-panel {
-    grid-template-columns: minmax(0, 1fr) minmax(76px, 0.72fr);
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
-  .payroll-panel article:first-child {
-    grid-column: 1 / -1;
+  .payroll-panel article {
+    gap: 3px;
+  }
+
+  .payroll-panel article + article {
+    margin-left: 4px;
+    padding-left: 4px;
   }
 }
 
