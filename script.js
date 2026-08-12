@@ -374,7 +374,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.31";
+const APP_VERSION = "1.4.32";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1603,10 +1603,27 @@ function buildPreview(rowDetails, summary) {
   ];
 
   const filledRows = state.rows.filter((row) => row.type !== "pause" && (row.place.value || row.series.value || row.start.value || row.end.value));
+  let totalLineIndent = 0;
   if (filledRows.length === 0) {
     lines.push(t("noRows"));
   } else {
     let lineNumber = 1;
+    const workLines = [];
+    const addWorkLine = (parts, duration) => {
+      workLines.push({
+        type: "row",
+        prefix: parts.join(" | "),
+        duration
+      });
+    };
+    const addTotalLine = (duration) => {
+      workLines.push({
+        type: "total",
+        prefix: t("total"),
+        duration
+      });
+    };
+
     filledRows.forEach((row, index) => {
       const rowIndex = state.rows.indexOf(row);
       const detail = rowDetails[rowIndex];
@@ -1628,8 +1645,8 @@ function buildPreview(rowDetails, summary) {
       const mainUnits = minutesToUnits(detail?.ranges[0]?.minutes || 0);
       const rowTotalUnits = minutesToUnits(detail?.minutes || 0);
       const hasExtraTimes = (row.extraTimes || []).length > 0;
-      rowParts.push(`${start}-${end}`, formatUnits(hasExtraTimes ? mainUnits : rowTotalUnits));
-      lines.push(rowParts.join(" | "));
+      rowParts.push(`${start}-${end}`);
+      addWorkLine(rowParts, formatUnits(hasExtraTimes ? mainUnits : rowTotalUnits));
 
       (row.extraTimes || []).forEach((item, itemIndex) => {
         const extraStart = item.start.value || "__:__";
@@ -1644,20 +1661,45 @@ function buildPreview(rowDetails, summary) {
           extraParts.push(`${t("series")} ${series}`);
         }
 
-        extraParts.push(`${extraStart}-${extraEnd}`, formatUnits(extraUnits));
-        lines.push(extraParts.join(" | "));
+        extraParts.push(`${extraStart}-${extraEnd}`);
+        addWorkLine(extraParts, formatUnits(extraUnits));
       });
       if (hasExtraTimes) {
-        lines.push(`      ${t("total")} | ${formatUnits(rowTotalUnits)}`);
+        addTotalLine(formatUnits(rowTotalUnits));
       }
       if (index < filledRows.length - 1) {
-        lines.push("--------------------------------");
+        workLines.push({ type: "separator" });
       }
+    });
+
+    const durationColumn = Math.max(
+      0,
+      ...workLines
+        .filter((line) => line.type === "row")
+        .map((line) => line.prefix.length + 3)
+    );
+    totalLineIndent = Math.max(0, durationColumn - t("total").length - 3);
+    const separatorLength = Math.max(32, durationColumn + 5);
+    workLines.forEach((line) => {
+      if (line.type === "separator") {
+        lines.push("-".repeat(separatorLength));
+        return;
+      }
+
+      if (line.type === "total") {
+        const totalPrefix = line.prefix;
+        const totalStart = Math.max(0, durationColumn - totalPrefix.length - 3);
+        lines.push(`${" ".repeat(totalStart)}${totalPrefix} | ${line.duration}`);
+        return;
+      }
+
+      const padding = Math.max(0, durationColumn - line.prefix.length - 3);
+      lines.push(`${line.prefix}${" ".repeat(padding)} | ${line.duration}`);
     });
   }
 
   lines.push("");
-  lines.push(`      ${t("total")} | ${formatUnits(totalUnits)}`);
+  lines.push(`${" ".repeat(totalLineIndent)}${t("total")} | ${formatUnits(totalUnits)}`);
 
   return lines.join("\n");
 }
