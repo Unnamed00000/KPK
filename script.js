@@ -374,7 +374,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.30";
+const APP_VERSION = "1.4.31";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1606,6 +1606,7 @@ function buildPreview(rowDetails, summary) {
   if (filledRows.length === 0) {
     lines.push(t("noRows"));
   } else {
+    let lineNumber = 1;
     filledRows.forEach((row, index) => {
       const rowIndex = state.rows.indexOf(row);
       const detail = rowDetails[rowIndex];
@@ -1613,10 +1614,11 @@ function buildPreview(rowDetails, summary) {
       const place = row.place.value || (isPlaceOnlyRow(row) ? "__________" : getDefaultPlace());
       const start = row.start.value || "__:__";
       const end = row.end.value || "__:__";
-      const rowParts = [`${index + 1}. ${place}`];
+      const rowParts = [`${lineNumber}. ${place}`];
+      lineNumber += 1;
 
       if (isTimeOffRow(row)) {
-        rowParts[0] = `${index + 1}. ${t("timeOff")}`;
+        rowParts[0] = `${lineNumber - 1}. ${t("timeOff")}`;
       } else if (isMeetingRow(row)) {
         rowParts.push(series);
       } else if (!isPlaceOnlyRow(row)) {
@@ -1633,7 +1635,8 @@ function buildPreview(rowDetails, summary) {
         const extraStart = item.start.value || "__:__";
         const extraEnd = item.end.value || "__:__";
         const extraUnits = minutesToUnits(detail?.ranges[itemIndex + 1]?.minutes || 0);
-        const extraParts = [`${index + 1}.${itemIndex + 2}. ${place}`];
+        const extraParts = [`${lineNumber}. ${place}`];
+        lineNumber += 1;
 
         if (isMeetingRow(row)) {
           extraParts.push(series);
@@ -1645,7 +1648,7 @@ function buildPreview(rowDetails, summary) {
         lines.push(extraParts.join(" | "));
       });
       if (hasExtraTimes) {
-        lines.push(`   ${t("total")}: ${formatUnits(rowTotalUnits)}`);
+        lines.push(`      ${t("total")} | ${formatUnits(rowTotalUnits)}`);
       }
       if (index < filledRows.length - 1) {
         lines.push("--------------------------------");
@@ -1654,7 +1657,7 @@ function buildPreview(rowDetails, summary) {
   }
 
   lines.push("");
-  lines.push(`${t("total")}: ${formatUnits(totalUnits)}`);
+  lines.push(`      ${t("total")} | ${formatUnits(totalUnits)}`);
 
   return lines.join("\n");
 }
