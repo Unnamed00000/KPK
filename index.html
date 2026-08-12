@@ -11,7 +11,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=1.4.48">
+    <link rel="stylesheet" href="styles.css?v=1.4.49">
   </head>
   <body>
     <main class="app-shell">
@@ -75,7 +75,7 @@
 
             <article class="settings-info">
               <h3 data-i18n="version">Version</h3>
-              <p id="appVersion">v1.4.48</p>
+              <p id="appVersion">v1.4.49</p>
             </article>
 
             <article class="settings-info">
@@ -119,6 +119,10 @@
         <article>
           <span data-i18n="payTime">Timer</span>
           <strong id="payTimeText">0,00</strong>
+        </article>
+        <article>
+          <span data-i18n="sickTime">Syg</span>
+          <strong id="paySickText">0,00</strong>
         </article>
       </section>
 
@@ -216,6 +220,7 @@
             <button class="text-button" id="meetingButton" type="button" data-i18n="addMeeting">+ Møde</button>
             <button class="text-button" id="placeButton" type="button" data-i18n="addPlace">+ Plads</button>
             <button class="text-button" id="timeOffButton" type="button" data-i18n="addTimeOff">+ Afsp.</button>
+            <button class="text-button warning" id="sickButton" type="button" data-i18n="addSick">+ Syg</button>
           </div>
         </div>
 
@@ -298,6 +303,6 @@
       </div>
     </template>
 
-    <script src="script.js?v=1.4.48"></script>
+    <script src="script.js?v=1.4.49"></script>
   </body>
 </html>

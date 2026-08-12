@@ -139,6 +139,7 @@ const I18N = {
     payPeriod: "Lønperiode",
     payDate: "Udbetaling",
     payTime: "Timer",
+    sickTime: "Syg",
     calendarLegendTitle: "Forklaring",
     legendGreen: "Grøn prik: dagen er udfyldt.",
     legendBlue: "Blå prik: der er arbejdet mere end dagens valgte N/V-plan.",
@@ -165,8 +166,11 @@ const I18N = {
     addPlace: "+ Plads",
     addSeries: "+ Serie",
     addTimeOff: "+ Afsp.",
+    addSick: "+ Syg",
     addTimeSegment: "Tilføj tid",
     timeOff: "Afspadsering",
+    sick: "Syg",
+    sickMark: "syg",
     place: "Plads",
     series: "Serie",
     from: "Fra",
@@ -249,6 +253,7 @@ const I18N = {
     payPeriod: "Pay period",
     payDate: "Pay date",
     payTime: "Hours",
+    sickTime: "Sick",
     calendarLegendTitle: "Legend",
     legendGreen: "Green dot: the day has saved work.",
     legendBlue: "Blue dot: work is above the selected N/V plan.",
@@ -275,8 +280,11 @@ const I18N = {
     addPlace: "+ Place",
     addSeries: "+ Series",
     addTimeOff: "+ Afsp.",
+    addSick: "+ Sick",
     addTimeSegment: "Add time",
     timeOff: "Afspadsering",
+    sick: "Sick",
+    sickMark: "sick",
     place: "Place",
     series: "Series",
     from: "From",
@@ -442,7 +450,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.48";
+const APP_VERSION = "1.4.49";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -492,6 +500,7 @@ const elements = {
   payPeriodText: document.querySelector("#payPeriodText"),
   payDateText: document.querySelector("#payDateText"),
   payTimeText: document.querySelector("#payTimeText"),
+  paySickText: document.querySelector("#paySickText"),
   calendarExtraPanel: document.querySelector("#calendarExtraPanel"),
   calendarHelpButton: document.querySelector("#calendarHelpButton"),
   calendarLegendPanel: document.querySelector("#calendarLegendPanel"),
@@ -532,6 +541,7 @@ const elements = {
   meetingButton: document.querySelector("#meetingButton"),
   placeButton: document.querySelector("#placeButton"),
   timeOffButton: document.querySelector("#timeOffButton"),
+  sickButton: document.querySelector("#sickButton"),
   copyButton: document.querySelector("#copyButton"),
   shareButton: document.querySelector("#shareButton"),
   printButton: document.querySelector("#printButton"),
@@ -1046,6 +1056,32 @@ function getSavedMinutesInPeriod(startDate, endDate) {
   return total;
 }
 
+function getSavedSickMinutes(saved = {}) {
+  if (!Array.isArray(saved.rows)) {
+    return 0;
+  }
+
+  return saved.rows
+    .filter((row) => row?.type === "sick")
+    .reduce((sum, row) => sum + getSavedRowCountedMinutes(row), 0);
+}
+
+function getSavedPayrollMinutesInPeriod(startDate, endDate) {
+  const summary = {
+    paidMinutes: 0,
+    sickMinutes: 0
+  };
+
+  for (let cursor = new Date(startDate); cursor <= endDate; cursor = addDays(cursor, 1)) {
+    const saved = getSavedEntry(formatDateKey(cursor));
+    const sickMinutes = getSavedSickMinutes(saved);
+    summary.sickMinutes += sickMinutes;
+    summary.paidMinutes += Math.max(0, getSavedTotalCountedMinutes(saved) - sickMinutes);
+  }
+
+  return summary;
+}
+
 function formatShortDate(date) {
   return new Intl.DateTimeFormat(getLocale(), {
     day: "2-digit",
@@ -1077,7 +1113,7 @@ function getSavedLatestEndMinutes(saved, fallbackMinutes = 0) {
   }
 
   return saved.rows
-    .filter((row) => row?.type !== "pause" && row?.type !== "timeOff")
+    .filter((row) => row?.type !== "pause" && row?.type !== "timeOff" && row?.type !== "sick")
     .flatMap((row) => [
       row.end,
       ...((Array.isArray(row.extraTimes) ? row.extraTimes : []).map((item) => item?.end))
@@ -1228,6 +1264,10 @@ function getEntryTimeOffMinutes(saved = {}) {
     .reduce((sum, row) => sum + getSavedRowCountedMinutes(row), 0);
 }
 
+function getEntrySickMinutes(saved = {}) {
+  return getSavedSickMinutes(saved);
+}
+
 function getEntryOverModeMinutes(dateKey, saved = getSavedEntry(dateKey)) {
   const date = parseDateKey(dateKey);
   const dayNumber = saved.dayNumber || getWorkDayNumber(date);
@@ -1260,7 +1300,7 @@ function updatePayrollPanel() {
 
   const payday = getNextPayday(new Date());
   const period = getPayPeriodForPayday(payday);
-  const periodMinutes = getSavedMinutesInPeriod(period.start, period.end);
+  const payrollMinutes = getSavedPayrollMinutesInPeriod(period.start, period.end);
 
   if (elements.payPeriodText) {
     elements.payPeriodText.textContent = `${formatShortDate(period.start)}-${formatShortDate(period.end)}`;
@@ -1269,7 +1309,10 @@ function updatePayrollPanel() {
     elements.payDateText.textContent = `${formatShortDate(payday)} · ${t("week")} ${getIsoWeek(payday)}`;
   }
   if (elements.payTimeText) {
-    elements.payTimeText.textContent = formatUnits(minutesToUnits(periodMinutes));
+    elements.payTimeText.textContent = formatUnits(minutesToUnits(payrollMinutes.paidMinutes));
+  }
+  if (elements.paySickText) {
+    elements.paySickText.textContent = formatUnits(minutesToUnits(payrollMinutes.sickMinutes));
   }
   fitPayrollPanelText();
 }
@@ -1389,6 +1432,10 @@ function normalizeRowsLanguage() {
       row.place.value = t("timeOff");
       row.series.value = "";
     }
+    if (isSickRow(row)) {
+      row.place.value = t("sick");
+      row.series.value = "";
+    }
   });
 }
 
@@ -1482,6 +1529,13 @@ function renderCalendar() {
       }
       if (getEntryTimeOffMinutes(saved) > 0) {
         button.classList.add("has-time-off");
+      }
+      if (getEntrySickMinutes(saved) > 0) {
+        button.classList.add("has-sick");
+        const sickMark = document.createElement("span");
+        sickMark.className = "calendar-sick-mark";
+        sickMark.textContent = t("sickMark");
+        button.appendChild(sickMark);
       }
 
       if (button.classList.contains("has-entry") || button.classList.contains("has-extra") || button.classList.contains("has-time-off")) {
@@ -1973,6 +2027,10 @@ function isTimeOffRow(row) {
   return row.type === "timeOff";
 }
 
+function isSickRow(row) {
+  return row.type === "sick";
+}
+
 function getTotalsSummary(rowDetails) {
   return rowDetails.reduce((summary, detail) => {
     const row = detail.row;
@@ -1981,18 +2039,21 @@ function getTotalsSummary(rowDetails) {
     }
 
     const minutes = detail.minutes;
-    if (isMeetingRow(row)) {
+    if (isSickRow(row)) {
+      summary.sickMinutes += minutes;
+    } else if (isMeetingRow(row)) {
       summary.meetingMinutes += minutes;
     } else {
       summary.workMinutes += minutes;
     }
 
     summary.pauseMinutes += getRowPauseMinutes(row);
-    summary.totalMinutes = summary.workMinutes + summary.meetingMinutes;
+    summary.totalMinutes = summary.workMinutes + summary.meetingMinutes + summary.sickMinutes;
     return summary;
   }, {
     workMinutes: 0,
     meetingMinutes: 0,
+    sickMinutes: 0,
     pauseMinutes: 0,
     totalMinutes: 0
   });
@@ -2077,7 +2138,9 @@ function buildPreview(rowDetails, summary) {
       const rowParts = [`${lineNumber}. ${place}`];
       lineNumber += 1;
 
-      if (isTimeOffRow(row)) {
+      if (isSickRow(row)) {
+        rowParts[0] = `${lineNumber - 1}. ${t("sick")}`;
+      } else if (isTimeOffRow(row)) {
         rowParts[0] = `${lineNumber - 1}. ${t("timeOff")}`;
       } else if (isMeetingRow(row)) {
         rowParts.push(series);
@@ -2098,7 +2161,9 @@ function buildPreview(rowDetails, summary) {
         const extraParts = [`${lineNumber}. ${place}`];
         lineNumber += 1;
 
-        if (isMeetingRow(row)) {
+        if (isSickRow(row)) {
+          extraParts[0] = `${lineNumber - 1}. ${t("sick")}`;
+        } else if (isMeetingRow(row)) {
           extraParts.push(series);
         } else if (!isPlaceOnlyRow(row) && !isTimeOffRow(row)) {
           extraParts.push(`${t("series")} ${series}`);
@@ -2512,13 +2577,15 @@ function applyRowType(row) {
   const isPause = row.type === "pause";
   const isPlaceOnly = isPlaceOnlyRow(row);
   const isTimeOff = isTimeOffRow(row);
+  const isSick = isSickRow(row);
   row.element.classList.toggle("pause-row", isPause);
   row.element.classList.toggle("place-row", isPlaceOnly);
   row.element.classList.toggle("time-off-row", isTimeOff);
+  row.element.classList.toggle("sick-row", isSick);
   row.element.classList.toggle("can-add-segment", row.type === "work");
   row.element.dataset.type = row.type;
-  row.place.readOnly = isPause || isTimeOff;
-  row.series.readOnly = isPause || isPlaceOnly || isTimeOff;
+  row.place.readOnly = isPause || isTimeOff || isSick;
+  row.series.readOnly = isPause || isPlaceOnly || isTimeOff || isSick;
   row.start.type = "text";
   row.end.type = "text";
   row.start.readOnly = false;
@@ -2537,6 +2604,11 @@ function applyRowType(row) {
     row.series.value = t("pause");
   } else if (isTimeOff) {
     row.place.value = t("timeOff");
+    row.series.value = "";
+    row.series.placeholder = "";
+    row.series.removeAttribute("data-i18n-placeholder");
+  } else if (isSick) {
+    row.place.value = t("sick");
     row.series.value = "";
     row.series.placeholder = "";
     row.series.removeAttribute("data-i18n-placeholder");
@@ -2572,8 +2644,8 @@ function addRow(values = {}) {
     type: values.type ?? "work"
   };
 
-  row.place.value = values.place ?? (row.type === "pause" ? "-" : (row.type === "place" ? "" : (row.type === "timeOff" ? t("timeOff") : getDefaultPlace())));
-  row.series.value = (row.type === "place" || row.type === "timeOff") ? "" : (values.series ?? "");
+  row.place.value = values.place ?? (row.type === "pause" ? "-" : (row.type === "place" ? "" : (row.type === "timeOff" ? t("timeOff") : (row.type === "sick" ? t("sick") : getDefaultPlace()))));
+  row.series.value = (row.type === "place" || row.type === "timeOff" || row.type === "sick") ? "" : (values.series ?? "");
   if (row.type === "work") {
     row.series.value = formatSeriesValue(row.series.value, false);
   }
@@ -2650,6 +2722,16 @@ function addTimeOffRow() {
     start,
     end: timeOffMinutes >= fullRemaining ? fullEnd : addCountedMinutesSkippingPauses(start, timeOffMinutes),
     type: "timeOff"
+  });
+}
+
+function addSickRow() {
+  addRow({
+    place: t("sick"),
+    series: "",
+    start: SHIFT_START,
+    end: getShiftEnd(),
+    type: "sick"
   });
 }
 
@@ -2997,6 +3079,10 @@ elements.placeButton.addEventListener("click", () => {
 });
 elements.timeOffButton.addEventListener("click", () => {
   addTimeOffRow();
+  playFeedback();
+});
+elements.sickButton.addEventListener("click", () => {
+  addSickRow();
   playFeedback();
 });
 elements.copyButton.addEventListener("click", () => {

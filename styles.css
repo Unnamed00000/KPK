@@ -144,7 +144,7 @@ h2 {
 
 .table-section .row-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   width: 100%;
   gap: 6px;
 }
@@ -784,6 +784,19 @@ textarea {
   background: #e5b82e;
 }
 
+.calendar-sick-mark {
+  position: absolute;
+  bottom: 17px;
+  left: 50%;
+  z-index: 1;
+  color: #c63f2a;
+  font-size: 0.52rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: lowercase;
+  transform: translateX(-50%);
+}
+
 .legend-panel {
   position: fixed;
   inset: 0;
@@ -1225,12 +1238,19 @@ button:focus-visible {
 }
 
 .work-row.time-off-row input,
-.work-row.time-off-row .duration-output {
+.work-row.time-off-row .duration-output,
+.work-row.sick-row input,
+.work-row.sick-row .duration-output {
   background: #eef4ff;
 }
 
 .work-row.time-off-row .duration-output {
   color: #1d62bb;
+}
+
+.work-row.sick-row .place-input,
+.work-row.sick-row .duration-output {
+  color: var(--warn);
 }
 
 .text-button,
@@ -1412,7 +1432,7 @@ textarea {
   }
 
   .table-section .row-actions {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     width: 100%;
   }
 
