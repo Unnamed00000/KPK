@@ -33,6 +33,12 @@ const I18N = {
     legendNormal: "Помаранчева N: normal arbejdstid.",
     legendVariable: "Помаранчева V: variable arbejdstid.",
     legendToday: "Зелена рамка: сьогоднішня дата.",
+    dayActions: "Дії з датою",
+    moveDay: "Перемістити",
+    clearDay: "Очистити",
+    moveToDate: "Перемістити на дату",
+    dayMoved: "День переміщено",
+    dayCleared: "День очищено",
     addPause: "+ Пауза",
     addMeeting: "+ Зустріч",
     addPlace: "+ Місце",
@@ -126,6 +132,12 @@ const I18N = {
     legendNormal: "Orange N: normal arbejdstid.",
     legendVariable: "Orange V: variable arbejdstid.",
     legendToday: "Grøn kant: dags dato.",
+    dayActions: "Dato handlinger",
+    moveDay: "Flyt",
+    clearDay: "Ryd",
+    moveToDate: "Flyt til dato",
+    dayMoved: "Dagen er flyttet",
+    dayCleared: "Dagen er ryddet",
     addPause: "+ Pause",
     addMeeting: "+ Møde",
     addPlace: "+ Plads",
@@ -219,6 +231,12 @@ const I18N = {
     legendNormal: "Orange N: normal work time.",
     legendVariable: "Orange V: variable work time.",
     legendToday: "Green outline: today.",
+    dayActions: "Date actions",
+    moveDay: "Move",
+    clearDay: "Clear",
+    moveToDate: "Move to date",
+    dayMoved: "Day moved",
+    dayCleared: "Day cleared",
     addPause: "+ Pause",
     addMeeting: "+ Meeting",
     addPlace: "+ Place",
@@ -312,6 +330,12 @@ const I18N = {
     legendNormal: "Orange N: normal work time.",
     legendVariable: "Orange V: variable work time.",
     legendToday: "Green outline: today.",
+    dayActions: "Date actions",
+    moveDay: "Move",
+    clearDay: "Clear",
+    moveToDate: "Move to date",
+    dayMoved: "Day moved",
+    dayCleared: "Day cleared",
     addPause: "+ استراحة",
     addMeeting: "+ اجتماع",
     addPlace: "+ مكان",
@@ -374,7 +398,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.37";
+const APP_VERSION = "1.4.38";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -408,6 +432,8 @@ const state = {
   screenMode: "",
   workMode: "variable",
   selectedDate: "",
+  actionDate: "",
+  suppressNextCalendarClick: false,
   calendarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   isLoading: false
 };
@@ -421,6 +447,13 @@ const elements = {
   calendarHelpButton: document.querySelector("#calendarHelpButton"),
   calendarLegendPanel: document.querySelector("#calendarLegendPanel"),
   closeCalendarLegendButton: document.querySelector("#closeCalendarLegendButton"),
+  dayActionPanel: document.querySelector("#dayActionPanel"),
+  closeDayActionButton: document.querySelector("#closeDayActionButton"),
+  dayActionDate: document.querySelector("#dayActionDate"),
+  dayMoveControls: document.querySelector("#dayMoveControls"),
+  moveDateInput: document.querySelector("#moveDateInput"),
+  moveDayButton: document.querySelector("#moveDayButton"),
+  clearDayButton: document.querySelector("#clearDayButton"),
   accumulatedExtraTime: document.querySelector("#accumulatedExtraTime"),
   prevMonthButton: document.querySelector("#prevMonthButton"),
   nextMonthButton: document.querySelector("#nextMonthButton"),
@@ -620,7 +653,7 @@ function setSettingsPanelOpen(isOpen) {
 
   elements.settingsPanel.hidden = !isOpen;
   elements.settingsButton.setAttribute("aria-expanded", String(isOpen));
-  document.body.classList.toggle("modal-open", isOpen || (elements.calendarLegendPanel && !elements.calendarLegendPanel.hidden));
+  updateModalState();
 
   if (isOpen) {
     elements.closeSettingsButton?.focus();
@@ -636,13 +669,94 @@ function setCalendarLegendOpen(isOpen) {
 
   elements.calendarLegendPanel.hidden = !isOpen;
   elements.calendarHelpButton.setAttribute("aria-expanded", String(isOpen));
-  document.body.classList.toggle("modal-open", isOpen || (elements.settingsPanel && !elements.settingsPanel.hidden));
+  updateModalState();
 
   if (isOpen) {
     elements.closeCalendarLegendButton?.focus();
   } else {
     elements.calendarHelpButton.focus();
   }
+}
+
+function updateModalState() {
+  document.body.classList.toggle(
+    "modal-open",
+    (elements.settingsPanel && !elements.settingsPanel.hidden)
+      || (elements.calendarLegendPanel && !elements.calendarLegendPanel.hidden)
+      || (elements.dayActionPanel && !elements.dayActionPanel.hidden)
+  );
+}
+
+function setDayActionPanelOpen(isOpen, dateKey = state.actionDate) {
+  if (!elements.dayActionPanel) {
+    return;
+  }
+
+  state.actionDate = isOpen ? dateKey : "";
+  elements.dayActionPanel.hidden = !isOpen;
+  if (elements.dayMoveControls) {
+    elements.dayMoveControls.hidden = true;
+  }
+  if (elements.dayActionDate) {
+    elements.dayActionDate.textContent = isOpen ? formatDisplayDate(parseDateKey(dateKey)) : "";
+  }
+  if (elements.moveDateInput && isOpen) {
+    elements.moveDateInput.value = dateKey;
+  }
+  updateModalState();
+
+  if (isOpen) {
+    elements.moveDayButton?.focus();
+  }
+}
+
+function clearDayEntry(dateKey = state.actionDate) {
+  if (!dateKey) {
+    return;
+  }
+
+  localStorage.removeItem(getDateStorageKey(dateKey));
+  if (state.selectedDate === dateKey) {
+    state.selectedDate = "";
+  }
+  setDayActionPanelOpen(false);
+  renderCalendar();
+  updateAccumulatedExtra();
+  playFeedback();
+}
+
+function moveDayEntry(fromDateKey = state.actionDate, toDateKey = elements.moveDateInput?.value) {
+  if (!fromDateKey || !toDateKey || fromDateKey === toDateKey) {
+    return;
+  }
+
+  const saved = getSavedEntry(fromDateKey);
+  if (!hasSavedEntry(fromDateKey)) {
+    setDayActionPanelOpen(false);
+    return;
+  }
+
+  const targetDate = parseDateKey(toDateKey);
+  if (Number.isNaN(targetDate.getTime())) {
+    return;
+  }
+  const moved = {
+    ...saved,
+    date: toDateKey,
+    weekNumber: getIsoWeek(targetDate),
+    dayNumber: getWorkDayNumber(targetDate)
+  };
+
+  localStorage.setItem(getDateStorageKey(toDateKey), JSON.stringify(moved));
+  localStorage.removeItem(getDateStorageKey(fromDateKey));
+  if (state.selectedDate === fromDateKey) {
+    state.selectedDate = toDateKey;
+  }
+  state.calendarMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+  setDayActionPanelOpen(false);
+  renderCalendar();
+  updateAccumulatedExtra();
+  playFeedback();
 }
 
 async function forceRefreshApp() {
@@ -1169,7 +1283,42 @@ function renderCalendar() {
         button.appendChild(dots);
       }
 
-      button.addEventListener("click", () => openEditor(dateKey));
+      let longPressTimer = null;
+      const cancelLongPress = () => {
+        if (longPressTimer) {
+          window.clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
+      button.addEventListener("pointerdown", () => {
+        if (!hasSavedEntry(dateKey)) {
+          return;
+        }
+        cancelLongPress();
+        longPressTimer = window.setTimeout(() => {
+          state.suppressNextCalendarClick = true;
+          setDayActionPanelOpen(true, dateKey);
+          playFeedback();
+        }, 560);
+      });
+      button.addEventListener("pointerup", cancelLongPress);
+      button.addEventListener("pointerleave", cancelLongPress);
+      button.addEventListener("pointercancel", cancelLongPress);
+      button.addEventListener("contextmenu", (event) => {
+        if (hasSavedEntry(dateKey)) {
+          event.preventDefault();
+          setDayActionPanelOpen(true, dateKey);
+        }
+      });
+      button.addEventListener("click", (event) => {
+        if (state.suppressNextCalendarClick) {
+          event.preventDefault();
+          state.suppressNextCalendarClick = false;
+          return;
+        }
+        openEditor(dateKey);
+      });
       elements.calendarGrid.appendChild(button);
     }
   }
@@ -2483,6 +2632,26 @@ elements.closeCalendarLegendButton?.addEventListener("click", () => {
   playFeedback();
 });
 
+elements.closeDayActionButton?.addEventListener("click", () => {
+  setDayActionPanelOpen(false);
+  playFeedback();
+});
+
+elements.moveDayButton?.addEventListener("click", () => {
+  if (elements.dayMoveControls?.hidden) {
+    elements.dayMoveControls.hidden = false;
+    elements.moveDateInput?.focus();
+    playFeedback();
+    return;
+  }
+
+  moveDayEntry();
+});
+
+elements.clearDayButton?.addEventListener("click", () => {
+  clearDayEntry();
+});
+
 elements.settingsPanel?.addEventListener("click", (event) => {
   if (event.target === elements.settingsPanel) {
     setSettingsPanelOpen(false);
@@ -2497,6 +2666,13 @@ elements.calendarLegendPanel?.addEventListener("click", (event) => {
   }
 });
 
+elements.dayActionPanel?.addEventListener("click", (event) => {
+  if (event.target === elements.dayActionPanel) {
+    setDayActionPanelOpen(false);
+    playFeedback();
+  }
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && elements.settingsPanel && !elements.settingsPanel.hidden) {
     setSettingsPanelOpen(false);
@@ -2504,6 +2680,10 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key === "Escape" && elements.calendarLegendPanel && !elements.calendarLegendPanel.hidden) {
     setCalendarLegendOpen(false);
+    playFeedback();
+  }
+  if (event.key === "Escape" && elements.dayActionPanel && !elements.dayActionPanel.hidden) {
+    setDayActionPanelOpen(false);
     playFeedback();
   }
 });

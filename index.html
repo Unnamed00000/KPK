@@ -11,7 +11,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=1.4.37">
+    <link rel="stylesheet" href="styles.css?v=1.4.38">
   </head>
   <body>
     <main class="app-shell">
@@ -75,7 +75,7 @@
 
             <article class="settings-info">
               <h3 data-i18n="version">Version</h3>
-              <p id="appVersion">v1.4.37</p>
+              <p id="appVersion">v1.4.38</p>
             </article>
 
             <article class="settings-info">
@@ -125,6 +125,26 @@
             <p><span class="legend-mark">N</span><span data-i18n="legendNormal">Orange N: normal arbejdstid.</span></p>
             <p><span class="legend-mark">V</span><span data-i18n="legendVariable">Orange V: variable arbejdstid.</span></p>
             <p><span class="legend-outline"></span><span data-i18n="legendToday">Grøn kant: dags dato.</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="legend-panel" id="dayActionPanel" role="dialog" aria-modal="true" aria-label="Dato handlinger" data-i18n-aria-label="dayActions" hidden>
+        <div class="legend-dialog day-action-dialog">
+          <div class="section-head">
+            <h2 data-i18n="dayActions">Dato handlinger</h2>
+            <button class="icon-button" id="closeDayActionButton" type="button" title="Luk" data-i18n-title="close">×</button>
+          </div>
+          <p class="day-action-date" id="dayActionDate"></p>
+          <div class="day-action-move" id="dayMoveControls" hidden>
+            <label>
+              <span data-i18n="moveToDate">Flyt til dato</span>
+              <input id="moveDateInput" type="date">
+            </label>
+          </div>
+          <div class="day-action-buttons">
+            <button class="text-button" id="moveDayButton" type="button" data-i18n="moveDay">Flyt</button>
+            <button class="text-button warning" id="clearDayButton" type="button" data-i18n="clearDay">Ryd</button>
           </div>
         </div>
       </section>
@@ -258,6 +278,6 @@
       </div>
     </template>
 
-    <script src="script.js?v=1.4.37"></script>
+    <script src="script.js?v=1.4.38"></script>
   </body>
 </html>

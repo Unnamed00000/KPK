@@ -769,6 +769,29 @@ textarea {
   border-radius: 4px;
 }
 
+.day-action-dialog {
+  display: grid;
+  gap: 12px;
+}
+
+.day-action-date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.day-action-move label {
+  display: grid;
+  gap: 6px;
+}
+
+.day-action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 /* Keep the calendar landing screen within a typical desktop viewport. */
 @media (min-width: 681px) {
   .app-shell {
