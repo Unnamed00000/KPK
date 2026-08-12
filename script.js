@@ -142,8 +142,8 @@ const I18N = {
     accumulatedExtra: "Afspadsering",
     payPeriod: "Lønperiode",
     payDate: "Udbetaling",
-    payTime: "Arb. timer",
-    sickTime: "Syg timer",
+    payTime: "Arbejdstimer",
+    sickTime: "Sygetimer",
     payTotal: "I alt",
     calendarLegendTitle: "Forklaring",
     legendGreen: "Grøn prik: dagen er udfyldt.",
@@ -464,7 +464,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.53";
+const APP_VERSION = "1.4.54";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -514,6 +514,7 @@ const elements = {
   payPeriodText: document.querySelector("#payPeriodText"),
   payDateText: document.querySelector("#payDateText"),
   payTimeText: document.querySelector("#payTimeText"),
+  paySickRow: document.querySelector("#paySickRow"),
   paySickText: document.querySelector("#paySickText"),
   payTotalText: document.querySelector("#payTotalText"),
   calendarExtraPanel: document.querySelector("#calendarExtraPanel"),
@@ -721,7 +722,7 @@ function fitPayrollPanelText() {
     return;
   }
 
-  const articles = Array.from(panel.querySelectorAll("article"));
+  const articles = Array.from(panel.querySelectorAll("article")).filter((article) => !article.hidden);
   if (articles.length === 0) {
     document.documentElement.style.removeProperty("--calendar-summary-label-size");
     document.documentElement.style.removeProperty("--calendar-summary-value-size");
@@ -1060,6 +1061,23 @@ function getPayPeriodForPayday(payday) {
   return { start, end };
 }
 
+function getReadyPayrollPeriod(fromDate = new Date()) {
+  const today = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+  for (let offset = 0; offset < 370; offset += 1) {
+    const payday = addDays(today, offset);
+    if (payday.getDay() !== 4 || getIsoWeek(payday) % 2 !== 0) {
+      continue;
+    }
+
+    const period = getPayPeriodForPayday(payday);
+    if (period.end < today) {
+      return { payday, period };
+    }
+  }
+
+  return null;
+}
+
 function getSavedMinutesInPeriod(startDate, endDate) {
   let total = 0;
   for (let cursor = new Date(startDate); cursor <= endDate; cursor = addDays(cursor, 1)) {
@@ -1324,8 +1342,14 @@ function updatePayrollPanel() {
     return;
   }
 
-  const payday = getNextPayday(new Date());
-  const period = getPayPeriodForPayday(payday);
+  const readyPayroll = getReadyPayrollPeriod(new Date());
+  if (!readyPayroll) {
+    elements.payrollPanel.hidden = true;
+    return;
+  }
+
+  elements.payrollPanel.hidden = false;
+  const { payday, period } = readyPayroll;
   const payrollMinutes = getSavedPayrollMinutesInPeriod(period.start, period.end);
 
   if (elements.payPeriodText) {
@@ -1339,6 +1363,9 @@ function updatePayrollPanel() {
   }
   if (elements.paySickText) {
     elements.paySickText.textContent = formatUnits(minutesToUnits(payrollMinutes.sickMinutes));
+  }
+  if (elements.paySickRow) {
+    elements.paySickRow.hidden = payrollMinutes.sickMinutes <= 0;
   }
   if (elements.payTotalText) {
     elements.payTotalText.textContent = formatUnits(minutesToUnits(payrollMinutes.paidMinutes + payrollMinutes.sickMinutes));
