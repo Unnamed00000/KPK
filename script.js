@@ -108,7 +108,9 @@ const I18N = {
       2: "Вівторок",
       3: "Середа",
       4: "Четвер",
-      5: "П'ятниця"
+      5: "П'ятниця",
+      6: "Субота",
+      7: "Неділя"
     }
   },
   da: {
@@ -223,7 +225,9 @@ const I18N = {
       2: "Tirsdag",
       3: "Onsdag",
       4: "Torsdag",
-      5: "Fredag"
+      5: "Fredag",
+      6: "Lørdag",
+      7: "Søndag"
     }
   },
   en: {
@@ -338,7 +342,9 @@ const I18N = {
       2: "Tuesday",
       3: "Wednesday",
       4: "Thursday",
-      5: "Friday"
+      5: "Friday",
+      6: "Saturday",
+      7: "Sunday"
     }
   },
   ar: {
@@ -450,13 +456,15 @@ const I18N = {
       2: "الثلاثاء",
       3: "الأربعاء",
       4: "الخميس",
-      5: "الجمعة"
+      5: "الجمعة",
+      6: "السبت",
+      7: "الأحد"
     }
   }
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.52";
+const APP_VERSION = "1.4.53";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -572,10 +580,7 @@ function getIsoWeek(date) {
 
 function getWorkDayNumber(date) {
   const day = date.getDay();
-  if (day >= 1 && day <= 5) {
-    return String(day);
-  }
-  return "1";
+  return String(day || 7);
 }
 
 function formatDateKey(date) {
@@ -1051,7 +1056,7 @@ function getNextPayday(fromDate = new Date()) {
 function getPayPeriodForPayday(payday) {
   const payWeekStart = getWeekStart(payday);
   const start = addDays(payWeekStart, -14);
-  const end = addDays(payWeekStart, -3);
+  const end = addDays(payWeekStart, -1);
   return { start, end };
 }
 
