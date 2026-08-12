@@ -952,6 +952,10 @@ button:focus-visible {
   min-height: 54px;
 }
 
+.work-row[hidden] {
+  display: none;
+}
+
 .work-row > *,
 .work-row input {
   min-width: 0;
