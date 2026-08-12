@@ -464,7 +464,8 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.54";
+const APP_VERSION = "1.4.55";
+const TEST_TODAY = "2026-08-17";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -489,7 +490,7 @@ const DEFAULT_PAUSES = [
 
 const state = {
   rows: [],
-  dayNumber: getWorkDayNumber(new Date()),
+  dayNumber: getWorkDayNumber(getToday()),
   language: DEFAULT_LANGUAGE,
   languagePreferenceSet: false,
   vibration: false,
@@ -501,7 +502,7 @@ const state = {
   actionDate: "",
   dayActionMode: "",
   suppressNextCalendarClick: false,
-  calendarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  calendarMonth: new Date(getToday().getFullYear(), getToday().getMonth(), 1),
   isLoading: false
 };
 
@@ -577,6 +578,11 @@ function getIsoWeek(date) {
   utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayNumber);
   const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
   return Math.ceil(((utcDate - yearStart) / 86400000 + 1) / 7);
+}
+
+function getToday() {
+  const overrideDate = parseDateKey(TEST_TODAY);
+  return Number.isNaN(overrideDate.getTime()) ? new Date() : overrideDate;
 }
 
 function getWorkDayNumber(date) {
@@ -1013,7 +1019,7 @@ function getSavedEntry(dateKey) {
     return saved;
   }
 
-  const todayKey = formatDateKey(new Date());
+  const todayKey = formatDateKey(getToday());
   if (dateKey === todayKey) {
     return readJsonStorage(LEGACY_STORAGE_KEY);
   }
@@ -1031,7 +1037,7 @@ function getSavedDateKeys() {
   }
 
   if (localStorage.getItem(LEGACY_STORAGE_KEY)) {
-    keys.add(formatDateKey(new Date()));
+    keys.add(formatDateKey(getToday()));
   }
 
   return Array.from(keys).sort();
@@ -1342,7 +1348,7 @@ function updatePayrollPanel() {
     return;
   }
 
-  const readyPayroll = getReadyPayrollPeriod(new Date());
+  const readyPayroll = getReadyPayrollPeriod(getToday());
   if (!readyPayroll) {
     elements.payrollPanel.hidden = true;
     return;
@@ -1537,7 +1543,7 @@ function renderCalendar() {
     }).format(day)));
   }
 
-  const todayKey = formatDateKey(new Date());
+  const todayKey = formatDateKey(getToday());
   const calendarStart = getCalendarStart(monthDate);
 
   for (let week = 0; week < 6; week += 1) {
