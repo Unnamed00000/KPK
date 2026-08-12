@@ -472,8 +472,17 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.62";
+const APP_VERSION = "1.4.63";
 const FIREBASE_SDK_VERSION = "10.12.5";
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
+  authDomain: "kpk-d1e82.firebaseapp.com",
+  projectId: "kpk-d1e82",
+  storageBucket: "kpk-d1e82.firebasestorage.app",
+  messagingSenderId: "732418254487",
+  appId: "1:732418254487:web:8f7be6864dd9a8fa626bd2",
+  measurementId: "G-VFVN340V1S"
+};
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1052,13 +1061,15 @@ async function initAnonymousAnalytics() {
   try {
     await loadExternalScript(`/__/firebase/${FIREBASE_SDK_VERSION}/firebase-app-compat.js`);
     await loadExternalScript(`/__/firebase/${FIREBASE_SDK_VERSION}/firebase-analytics-compat.js`);
-    await loadExternalScript("/__/firebase/init.js");
 
-    if (!window.firebase?.analytics) {
+    if (!window.firebase?.initializeApp || !window.firebase?.analytics) {
       return;
     }
 
-    const analytics = window.firebase.analytics();
+    const app = window.firebase.apps?.length
+      ? window.firebase.apps[0]
+      : window.firebase.initializeApp(FIREBASE_CONFIG);
+    const analytics = window.firebase.analytics(app);
     analytics.logEvent("kpk_app_open", {
       app_version: APP_VERSION,
       language: state.language,
