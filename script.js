@@ -38,6 +38,7 @@ const I18N = {
     addPlace: "+ Місце",
     addSeries: "+ Серія",
     addTimeOff: "+ Afsp.",
+    addTimeSegment: "Додати час",
     timeOff: "Afspadsering",
     place: "Місце",
     series: "Серія",
@@ -130,6 +131,7 @@ const I18N = {
     addPlace: "+ Plads",
     addSeries: "+ Serie",
     addTimeOff: "+ Afsp.",
+    addTimeSegment: "Tilføj tid",
     timeOff: "Afspadsering",
     place: "Plads",
     series: "Serie",
@@ -222,6 +224,7 @@ const I18N = {
     addPlace: "+ Place",
     addSeries: "+ Series",
     addTimeOff: "+ Afsp.",
+    addTimeSegment: "Add time",
     timeOff: "Afspadsering",
     place: "Place",
     series: "Series",
@@ -314,6 +317,7 @@ const I18N = {
     addPlace: "+ مكان",
     addSeries: "+ سلسلة",
     addTimeOff: "+ Afsp.",
+    addTimeSegment: "إضافة وقت",
     timeOff: "Afspadsering",
     place: "المكان",
     series: "السلسلة",
@@ -370,7 +374,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.24";
+const APP_VERSION = "1.4.25";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -759,7 +763,11 @@ function getSavedLatestEndMinutes(saved, fallbackMinutes = 0) {
 
   return saved.rows
     .filter((row) => row?.type !== "pause" && row?.type !== "timeOff")
-    .map((row) => parseTimeToMinutes(row.end))
+    .flatMap((row) => [
+      row.end,
+      ...((Array.isArray(row.extraTimes) ? row.extraTimes : []).map((item) => item?.end))
+    ])
+    .map((value) => parseTimeToMinutes(value))
     .filter((minutes) => minutes !== null)
     .reduce((latest, minutes) => Math.max(latest, minutes), fallbackMinutes);
 }
@@ -768,7 +776,11 @@ function getSavedRowCountedMinutes(row) {
   if (!row || row.type === "pause") {
     return 0;
   }
-  return Math.max(0, getDurationMinutes(row.start, row.end) - getPauseOverlapMinutes(row.start, row.end));
+  const mainMinutes = Math.max(0, getDurationMinutes(row.start, row.end) - getPauseOverlapMinutes(row.start, row.end));
+  const extraMinutes = (Array.isArray(row.extraTimes) ? row.extraTimes : []).reduce((sum, item) => (
+    sum + Math.max(0, getDurationMinutes(item?.start, item?.end) - getPauseOverlapMinutes(item?.start, item?.end))
+  ), 0);
+  return mainMinutes + extraMinutes;
 }
 
 function getEntryWorkMode(dateKey, saved = getSavedEntry(dateKey)) {
@@ -1186,6 +1198,27 @@ function normalizeTimeInput(input) {
   }
 }
 
+function formatSeriesValue(value, shouldKeepTrailingDash = true) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 0) {
+    return "";
+  }
+  if (digits.length < 2) {
+    return digits;
+  }
+  if (digits.length === 2) {
+    return shouldKeepTrailingDash ? `${digits}-` : digits;
+  }
+  return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+}
+
+function normalizeSeriesInput(input, event) {
+  const nextValue = formatSeriesValue(input.value, !event?.inputType?.startsWith("delete"));
+  if (input.value !== nextValue) {
+    input.value = nextValue;
+  }
+}
+
 function minutesToUnits(totalMinutes) {
   if (totalMinutes === 500) {
     return 832;
@@ -1259,8 +1292,8 @@ function getWindowOverlapMinutes(rowWindow, excludeWindow) {
   return { start, end };
 }
 
-function getMergedOverlapMinutes(row, excludedWindows) {
-  const rowWindow = getTimeWindow(row.start.value, row.end.value);
+function getMergedOverlapMinutesForRange(start, end, excludedWindows) {
+  const rowWindow = getTimeWindow(start, end);
   if (!rowWindow) {
     return 0;
   }
@@ -1285,6 +1318,10 @@ function getMergedOverlapMinutes(row, excludedWindows) {
   });
 
   return merged.reduce((sum, window) => sum + window.end - window.start, 0);
+}
+
+function getMergedOverlapMinutes(row, excludedWindows) {
+  return getMergedOverlapMinutesForRange(row.start.value, row.end.value, excludedWindows);
 }
 
 function getDefaultPauseWindows() {
@@ -1328,40 +1365,61 @@ function getNextStartTime() {
   const previousWorkRow = state.rows
     .slice()
     .reverse()
-    .find((row) => row.type !== "pause" && row.end.value);
-  return moveTimeAfterPause(previousWorkRow?.end.value || SHIFT_START);
+    .find((row) => row.type !== "pause" && (row.end.value || (row.extraTimes || []).length > 0));
+  return moveTimeAfterPause(previousWorkRow ? getLastEndValue(previousWorkRow) : SHIFT_START);
 }
 
 function getRowUnits(row) {
   return minutesToUnits(getRowMinutes(row));
 }
 
-function getRowMinutes(row) {
-  const durationMinutes = getDurationMinutes(row.start.value, row.end.value);
+function getMeetingWindows(exceptRow = null) {
+  const windows = [];
+  state.rows.forEach((item) => {
+    if (item !== exceptRow && isMeetingRow(item)) {
+      const meetingWindow = getTimeWindow(item.start.value, item.end.value);
+      if (meetingWindow) {
+        windows.push(meetingWindow);
+      }
+    }
+  });
+  return windows;
+}
+
+function getRowRangeMinutes(row, start, end) {
+  const durationMinutes = getDurationMinutes(start, end);
   if (row.type === "pause") {
     return durationMinutes;
   }
 
   const excludedWindows = getDefaultPauseWindows();
   if (!isMeetingRow(row)) {
-    state.rows.forEach((item) => {
-      if (item !== row && isMeetingRow(item)) {
-        const meetingWindow = getTimeWindow(item.start.value, item.end.value);
-        if (meetingWindow) {
-          excludedWindows.push(meetingWindow);
-        }
-      }
-    });
+    excludedWindows.push(...getMeetingWindows(row));
   }
 
-  return Math.max(0, durationMinutes - getMergedOverlapMinutes(row, excludedWindows));
+  return Math.max(0, durationMinutes - getMergedOverlapMinutesForRange(start, end, excludedWindows));
 }
 
-function getRowPauseUnits(row) {
+function getRowMinutes(row) {
+  const mainMinutes = getRowRangeMinutes(row, row.start.value, row.end.value);
+  const extraMinutes = (row.extraTimes || []).reduce((sum, item) => (
+    sum + getRowRangeMinutes(row, item.start.value, item.end.value)
+  ), 0);
+  return mainMinutes + extraMinutes;
+}
+
+function getRowPauseMinutes(row) {
   if (row.type === "pause") {
     return 0;
   }
-  return minutesToUnits(getPauseOverlapMinutes(row.start.value, row.end.value));
+  const mainPauseMinutes = getPauseOverlapMinutes(row.start.value, row.end.value);
+  return mainPauseMinutes + (row.extraTimes || []).reduce((sum, item) => (
+    sum + getPauseOverlapMinutes(item.start.value, item.end.value)
+  ), 0);
+}
+
+function getRowPauseUnits(row) {
+  return minutesToUnits(getRowPauseMinutes(row));
 }
 
 function isMeetingRow(row) {
@@ -1389,7 +1447,7 @@ function getTotalsSummary(rowMinutes) {
       summary.workMinutes += minutes;
     }
 
-    summary.pauseMinutes += getPauseOverlapMinutes(row.start.value, row.end.value);
+    summary.pauseMinutes += getRowPauseMinutes(row);
     summary.totalMinutes = summary.workMinutes + summary.meetingMinutes;
     return summary;
   }, {
@@ -1424,6 +1482,10 @@ function saveState() {
       series: row.series.value,
       start: row.start.value,
       end: row.end.value,
+      extraTimes: (row.extraTimes || []).map((item) => ({
+        start: item.start.value,
+        end: item.end.value
+      })),
       type: row.type
     }))
   };
@@ -1464,6 +1526,13 @@ function buildPreview(rowUnits, summary) {
 
       rowParts.push(`${start}-${end}`, formatUnits(rowUnits[rowIndex] || 0));
       lines.push(rowParts.join(" | "));
+
+      (row.extraTimes || []).forEach((item) => {
+        const extraStart = item.start.value || "__:__";
+        const extraEnd = item.end.value || "__:__";
+        const extraUnits = minutesToUnits(getRowRangeMinutes(row, item.start.value, item.end.value));
+        lines.push(`   + ${extraStart}-${extraEnd} | ${formatUnits(extraUnits)}`);
+      });
     });
   }
 
@@ -1652,6 +1721,10 @@ function updateTotals() {
 
   state.rows.forEach((row, index) => {
     row.duration.textContent = formatUnits(rowUnits[index] || 0);
+    (row.extraTimes || []).forEach((item) => {
+      const itemUnits = minutesToUnits(getRowRangeMinutes(row, item.start.value, item.end.value));
+      item.duration.textContent = formatUnits(itemUnits);
+    });
   });
 
   elements.shiftWindow.textContent = getShiftWindowText();
@@ -1663,9 +1736,115 @@ function updateTotals() {
   saveState();
 }
 
-function attachRowEvents(row) {
-  [row.place, row.series, row.start, row.end].forEach((input) => {
+function getLastEndValue(row) {
+  const lastExtra = (row.extraTimes || [])[row.extraTimes.length - 1];
+  return lastExtra?.end.value || row.end.value || getShiftEnd();
+}
+
+function updateExtraTimeButtons(row) {
+  (row.extraTimes || []).forEach((item, index) => {
+    item.moveUp.disabled = index === 0;
+    item.moveDown.disabled = index === row.extraTimes.length - 1;
+  });
+}
+
+function moveExtraTime(row, item, direction) {
+  const currentIndex = row.extraTimes.indexOf(item);
+  const nextIndex = currentIndex + direction;
+
+  if (currentIndex === -1 || nextIndex < 0 || nextIndex >= row.extraTimes.length) {
+    return;
+  }
+
+  const otherItem = row.extraTimes[nextIndex];
+  row.extraTimes[currentIndex] = otherItem;
+  row.extraTimes[nextIndex] = item;
+
+  if (direction < 0) {
+    row.extraTimesContainer.insertBefore(item.element, otherItem.element);
+  } else {
+    row.extraTimesContainer.insertBefore(otherItem.element, item.element);
+  }
+
+  updateTotals();
+}
+
+function addExtraTime(row, values = {}, options = {}) {
+  if (!row || row.type !== "work") {
+    return;
+  }
+
+  const element = document.createElement("div");
+  element.className = "work-row extra-time-row";
+  element.setAttribute("role", "row");
+  element.innerHTML = `
+    <div class="extra-time-spacer"></div>
+    <div class="extra-time-spacer"></div>
+    <label>
+      <span data-i18n="from">Fra</span>
+      <input class="start-input time-input" type="text" inputmode="numeric" placeholder="06:00">
+    </label>
+    <label>
+      <span data-i18n="to">Til</span>
+      <input class="end-input time-input" type="text" inputmode="numeric" placeholder="15:05">
+    </label>
+    <output class="duration-output">0,00</output>
+    <div class="move-controls" aria-label="Flyt række" data-i18n-aria-label="moveRow">
+      <button class="move-button move-up" type="button" title="Op" data-i18n-title="moveUp">↑</button>
+      <button class="move-button move-down" type="button" title="Ned" data-i18n-title="moveDown">↓</button>
+    </div>
+    <button class="remove-button" type="button" title="Slet række" data-i18n-title="deleteRow">×</button>
+  `;
+
+  const item = {
+    element,
+    start: element.querySelector(".start-input"),
+    end: element.querySelector(".end-input"),
+    duration: element.querySelector(".duration-output"),
+    moveUp: element.querySelector(".move-up"),
+    moveDown: element.querySelector(".move-down"),
+    remove: element.querySelector(".remove-button")
+  };
+
+  item.start.value = values.start ?? moveTimeAfterPause(getLastEndValue(row));
+  item.end.value = values.end ?? getShiftEnd();
+
+  [item.start, item.end].forEach((input) => {
     input.addEventListener("input", updateTotals);
+    input.addEventListener("blur", () => {
+      normalizeTimeInput(input);
+      updateTotals();
+    });
+  });
+
+  item.remove.addEventListener("click", () => {
+    item.element.remove();
+    row.extraTimes = row.extraTimes.filter((candidate) => candidate !== item);
+    updateTotals();
+  });
+  item.moveUp.addEventListener("click", () => moveExtraTime(row, item, -1));
+  item.moveDown.addEventListener("click", () => moveExtraTime(row, item, 1));
+
+  row.extraTimes.push(item);
+  row.extraTimesContainer.appendChild(element);
+  applyLanguageText(element);
+
+  if (!options.skipUpdate) {
+    updateTotals();
+    playFeedback();
+  }
+}
+
+function attachRowEvents(row) {
+  [row.place, row.start, row.end].forEach((input) => {
+    input.addEventListener("input", updateTotals);
+  });
+
+  row.series.addEventListener("input", (event) => {
+    if (row.type === "work") {
+      normalizeSeriesInput(row.series, event);
+    }
+    updateTotals();
   });
 
   [row.start, row.end].forEach((input) => {
@@ -1683,6 +1862,7 @@ function attachRowEvents(row) {
 
   row.moveUp.addEventListener("click", () => moveRow(row, -1));
   row.moveDown.addEventListener("click", () => moveRow(row, 1));
+  row.addSegment?.addEventListener("click", () => addExtraTime(row));
 }
 
 function moveRow(row, direction) {
@@ -1710,6 +1890,7 @@ function updateMoveButtons() {
   state.rows.forEach((row, index) => {
     row.moveUp.disabled = index === 0;
     row.moveDown.disabled = index === state.rows.length - 1;
+    updateExtraTimeButtons(row);
   });
 }
 
@@ -1720,6 +1901,7 @@ function applyRowType(row) {
   row.element.classList.toggle("pause-row", isPause);
   row.element.classList.toggle("place-row", isPlaceOnly);
   row.element.classList.toggle("time-off-row", isTimeOff);
+  row.element.classList.toggle("can-add-segment", row.type === "work");
   row.element.dataset.type = row.type;
   row.place.readOnly = isPause || isTimeOff;
   row.series.readOnly = isPause || isPlaceOnly || isTimeOff;
@@ -1732,6 +1914,9 @@ function applyRowType(row) {
   row.start.placeholder = "06:00";
   row.end.placeholder = "15:05";
   row.end.min = "";
+  if (row.addSegment) {
+    row.addSegment.hidden = row.type !== "work";
+  }
 
   if (isPause) {
     row.place.value = t("pause");
@@ -1765,11 +1950,17 @@ function addRow(values = {}) {
     moveUp: rowElement.querySelector(".move-up"),
     moveDown: rowElement.querySelector(".move-down"),
     remove: rowElement.querySelector(".remove-button"),
+    addSegment: rowElement.querySelector(".add-segment-button"),
+    extraTimesContainer: document.createElement("div"),
+    extraTimes: [],
     type: values.type ?? "work"
   };
 
   row.place.value = values.place ?? (row.type === "pause" ? "-" : (row.type === "place" ? "" : (row.type === "timeOff" ? t("timeOff") : getDefaultPlace())));
   row.series.value = (row.type === "place" || row.type === "timeOff") ? "" : (values.series ?? "");
+  if (row.type === "work") {
+    row.series.value = formatSeriesValue(row.series.value, false);
+  }
   if (row.type === "pause") {
     row.start.value = parseTimeToMinutes(values.start) === null ? defaultPause.start : values.start;
     row.end.value = parseTimeToMinutes(values.end) === null ? defaultPause.end : values.end;
@@ -1779,10 +1970,13 @@ function addRow(values = {}) {
   }
 
   applyRowType(row);
+  row.extraTimesContainer.className = "extra-times";
+  rowElement.appendChild(row.extraTimesContainer);
   attachRowEvents(row);
   state.rows.push(row);
   elements.rows.appendChild(rowElement);
   applyLanguageText(rowElement);
+  (Array.isArray(values.extraTimes) ? values.extraTimes : []).forEach((item) => addExtraTime(row, item, { skipUpdate: true }));
   updateTotals();
 }
 
@@ -1853,6 +2047,16 @@ function adjustRowsForDayChange(previousShiftEnd) {
     if (shouldUseShiftEnd) {
       row.end.value = getShiftEnd();
     }
+
+    (row.extraTimes || []).forEach((item) => {
+      const shouldUseExtraShiftEnd = !item.end.value
+        || item.end.value === previousShiftEnd
+        || KNOWN_SHIFT_ENDS.includes(item.end.value);
+
+      if (shouldUseExtraShiftEnd) {
+        item.end.value = getShiftEnd();
+      }
+    });
   });
 }
 

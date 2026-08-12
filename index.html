@@ -11,7 +11,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=1.4.24">
+    <link rel="stylesheet" href="styles.css?v=1.4.25">
   </head>
   <body>
     <main class="app-shell">
@@ -75,7 +75,7 @@
 
             <article class="settings-info">
               <h3 data-i18n="version">Version</h3>
-              <p id="appVersion">v1.4.24</p>
+              <p id="appVersion">v1.4.25</p>
             </article>
 
             <article class="settings-info">
@@ -236,9 +236,10 @@
           <span data-i18n="place">Plads</span>
           <input class="place-input" inputmode="numeric" placeholder="440">
         </label>
-        <label>
+        <label class="series-field">
           <span data-i18n="series">Serie</span>
           <input class="series-input" placeholder="Serienr." data-i18n-placeholder="seriesPlaceholder">
+          <button class="add-segment-button" type="button" title="Tilføj tid" data-i18n-title="addTimeSegment">+</button>
         </label>
         <label>
           <span data-i18n="from">Fra</span>
@@ -257,6 +258,6 @@
       </div>
     </template>
 
-    <script src="script.js?v=1.4.24"></script>
+    <script src="script.js?v=1.4.25"></script>
   </body>
 </html>

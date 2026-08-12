@@ -967,6 +967,57 @@ button:focus-visible {
   line-height: 1.25;
 }
 
+.series-field {
+  position: relative;
+}
+
+.series-field .series-input {
+  padding-right: 24px;
+}
+
+.add-segment-button {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #1f9f63;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.add-segment-button:hover {
+  background: #167f4d;
+}
+
+.add-segment-button[hidden] {
+  display: none;
+}
+
+.extra-times {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.extra-time-row {
+  min-height: 42px;
+  padding-top: 2px;
+  border-top: 1px dashed var(--line);
+}
+
+.extra-time-spacer {
+  min-height: 1px;
+}
+
 .work-row.header {
   min-height: auto;
   padding: 0;
