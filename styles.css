@@ -11,6 +11,8 @@
   --accent-dark: #145c40;
   --warn: #a44724;
   --shadow: 0 10px 35px rgba(28, 50, 39, 0.1);
+  --calendar-summary-label-size: clamp(0.82rem, 2.25vw, 0.86rem);
+  --calendar-summary-value-size: clamp(1rem, 2.95vw, 1.12rem);
 }
 
 :root[data-theme="dark"] {
@@ -564,7 +566,6 @@ textarea {
 }
 
 .payroll-panel {
-  --payroll-font-size: clamp(0.74rem, 2.5vw, 0.96rem);
   display: grid;
   gap: 0;
   margin-top: 12px;
@@ -602,7 +603,7 @@ textarea {
 .payroll-panel span {
   color: var(--muted);
   flex: 0 0 auto;
-  font-size: calc(var(--payroll-font-size) * 0.86);
+  font-size: var(--calendar-summary-label-size);
   font-weight: 800;
   line-height: 1.05;
   text-align: left;
@@ -611,7 +612,7 @@ textarea {
 .payroll-panel strong {
   color: var(--accent-dark);
   flex: 1 1 auto;
-  font-size: var(--payroll-font-size);
+  font-size: var(--calendar-summary-value-size);
   line-height: 1.05;
   text-align: right;
   white-space: nowrap;
@@ -635,13 +636,15 @@ textarea {
 
 .calendar-extra span {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: var(--calendar-summary-label-size);
   font-weight: 800;
+  line-height: 1.05;
 }
 
 .calendar-extra strong {
   color: var(--accent-dark);
-  font-size: 1.12rem;
+  font-size: var(--calendar-summary-value-size);
+  line-height: 1.05;
 }
 
 .calendar-weekday,

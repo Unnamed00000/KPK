@@ -442,7 +442,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.47";
+const APP_VERSION = "1.4.48";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -701,7 +701,8 @@ function fitPayrollPanelText() {
 
   const articles = Array.from(panel.querySelectorAll("article"));
   if (articles.length === 0) {
-    panel.style.removeProperty("--payroll-font-size");
+    document.documentElement.style.removeProperty("--calendar-summary-label-size");
+    document.documentElement.style.removeProperty("--calendar-summary-value-size");
     return;
   }
 
@@ -717,7 +718,7 @@ function fitPayrollPanelText() {
   const canvas = fitPayrollPanelText.canvas || document.createElement("canvas");
   fitPayrollPanelText.canvas = canvas;
   const context = canvas.getContext("2d");
-  const baseSize = 14;
+  const baseSize = 16;
   context.font = `800 ${baseSize}px ${style.fontFamily}`;
 
   const rowWidths = articles.map((article) => {
@@ -729,9 +730,10 @@ function fitPayrollPanelText() {
     return;
   }
 
-  const maxSize = window.innerWidth <= 430 ? 13 : 15;
-  const nextSize = Math.max(7, Math.min(maxSize, (availableWidth / neededWidth) * baseSize * 0.98));
-  panel.style.setProperty("--payroll-font-size", `${nextSize.toFixed(2)}px`);
+  const maxSize = window.innerWidth <= 430 ? 16 : 18;
+  const nextSize = Math.max(11, Math.min(maxSize, (availableWidth / neededWidth) * baseSize * 0.98));
+  document.documentElement.style.setProperty("--calendar-summary-value-size", `${nextSize.toFixed(2)}px`);
+  document.documentElement.style.setProperty("--calendar-summary-label-size", `${(nextSize * 0.74).toFixed(2)}px`);
 }
 
 function setUpdateStatus(messageKey) {
