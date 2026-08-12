@@ -455,8 +455,12 @@ h2 {
 }
 
 .table-section .section-head {
-  padding-right: 64px;
+  padding-right: 0;
   flex-wrap: wrap;
+}
+
+.table-section .section-head h2 {
+  padding-right: 64px;
 }
 
 .print-actions {
