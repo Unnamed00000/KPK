@@ -374,7 +374,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.25";
+const APP_VERSION = "1.4.26";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1324,6 +1324,51 @@ function getMergedOverlapMinutes(row, excludedWindows) {
   return getMergedOverlapMinutesForRange(row.start.value, row.end.value, excludedWindows);
 }
 
+function mergeWindows(windows) {
+  const sortedWindows = windows
+    .filter((window) => window && window.end > window.start)
+    .sort((first, second) => first.start - second.start);
+
+  const merged = [];
+  sortedWindows.forEach((window) => {
+    const previous = merged[merged.length - 1];
+    if (!previous || window.start > previous.end) {
+      merged.push({ ...window });
+      return;
+    }
+    previous.end = Math.max(previous.end, window.end);
+  });
+  return merged;
+}
+
+function subtractWindows(baseWindow, excludedWindows) {
+  if (!baseWindow) {
+    return [];
+  }
+
+  let pieces = [{ ...baseWindow }];
+  mergeWindows(excludedWindows).forEach((excludedWindow) => {
+    pieces = pieces.flatMap((piece) => {
+      const overlapStart = Math.max(piece.start, excludedWindow.start);
+      const overlapEnd = Math.min(piece.end, excludedWindow.end);
+      if (overlapEnd <= overlapStart) {
+        return [piece];
+      }
+
+      return [
+        { start: piece.start, end: overlapStart },
+        { start: overlapEnd, end: piece.end }
+      ].filter((window) => window.end > window.start);
+    });
+  });
+
+  return pieces;
+}
+
+function sumWindows(windows) {
+  return windows.reduce((sum, window) => sum + window.end - window.start, 0);
+}
+
 function getDefaultPauseWindows() {
   return DEFAULT_PAUSES
     .map((pause) => getTimeWindow(pause.start, pause.end))
@@ -1400,12 +1445,64 @@ function getRowRangeMinutes(row, start, end) {
   return Math.max(0, durationMinutes - getMergedOverlapMinutesForRange(start, end, excludedWindows));
 }
 
-function getRowMinutes(row) {
-  const mainMinutes = getRowRangeMinutes(row, row.start.value, row.end.value);
-  const extraMinutes = (row.extraTimes || []).reduce((sum, item) => (
-    sum + getRowRangeMinutes(row, item.start.value, item.end.value)
+function getRowRanges(row) {
+  return [
+    { start: row.start.value, end: row.end.value },
+    ...(row.extraTimes || []).map((item) => ({
+      start: item.start.value,
+      end: item.end.value
+    }))
+  ];
+}
+
+function getRowExcludedWindows(row, countedWindows = []) {
+  if (row.type === "pause") {
+    return [];
+  }
+
+  const excludedWindows = getDefaultPauseWindows();
+  if (!isMeetingRow(row)) {
+    excludedWindows.push(...getMeetingWindows(row));
+  }
+  excludedWindows.push(...countedWindows);
+  return excludedWindows;
+}
+
+function getRangeCountedPieces(row, start, end, countedWindows = []) {
+  if (row.type === "pause") {
+    const window = getTimeWindow(start, end);
+    return window ? [window] : [];
+  }
+
+  return subtractWindows(getTimeWindow(start, end), getRowExcludedWindows(row, countedWindows));
+}
+
+function getRowMinutes(row, countedWindows = []) {
+  return getRowRanges(row).reduce((sum, range) => (
+    sum + sumWindows(getRangeCountedPieces(row, range.start, range.end, countedWindows))
   ), 0);
-  return mainMinutes + extraMinutes;
+}
+
+function getRowsCalculation() {
+  const countedWindows = [];
+  return state.rows.map((row) => {
+    const ranges = getRowRanges(row).map((range) => {
+      const pieces = getRangeCountedPieces(row, range.start, range.end, countedWindows);
+      if (row.type !== "pause") {
+        countedWindows.push(...pieces);
+      }
+      return {
+        ...range,
+        minutes: sumWindows(pieces)
+      };
+    });
+
+    return {
+      row,
+      ranges,
+      minutes: ranges.reduce((sum, range) => sum + range.minutes, 0)
+    };
+  });
 }
 
 function getRowPauseMinutes(row) {
@@ -1434,13 +1531,14 @@ function isTimeOffRow(row) {
   return row.type === "timeOff";
 }
 
-function getTotalsSummary(rowMinutes) {
-  return state.rows.reduce((summary, row, index) => {
+function getTotalsSummary(rowDetails) {
+  return rowDetails.reduce((summary, detail) => {
+    const row = detail.row;
     if (row.type === "pause") {
       return summary;
     }
 
-    const minutes = rowMinutes[index] || 0;
+    const minutes = detail.minutes;
     if (isMeetingRow(row)) {
       summary.meetingMinutes += minutes;
     } else {
@@ -1494,7 +1592,7 @@ function saveState() {
   renderCalendar();
 }
 
-function buildPreview(rowUnits, summary) {
+function buildPreview(rowDetails, summary) {
   const totalUnits = minutesToUnits(summary.totalMinutes);
   const lines = [
     `${t("fullName")}: ${elements.firstName.value || "__________"}`,
@@ -1510,6 +1608,7 @@ function buildPreview(rowUnits, summary) {
   } else {
     filledRows.forEach((row, index) => {
       const rowIndex = state.rows.indexOf(row);
+      const detail = rowDetails[rowIndex];
       const series = row.series.value || "__________";
       const place = row.place.value || (isPlaceOnlyRow(row) ? "__________" : getDefaultPlace());
       const start = row.start.value || "__:__";
@@ -1524,13 +1623,13 @@ function buildPreview(rowUnits, summary) {
         rowParts.push(`${t("series")} ${series}`);
       }
 
-      rowParts.push(`${start}-${end}`, formatUnits(rowUnits[rowIndex] || 0));
+      rowParts.push(`${start}-${end}`, formatUnits(minutesToUnits(detail?.minutes || 0)));
       lines.push(rowParts.join(" | "));
 
-      (row.extraTimes || []).forEach((item) => {
+      (row.extraTimes || []).forEach((item, itemIndex) => {
         const extraStart = item.start.value || "__:__";
         const extraEnd = item.end.value || "__:__";
-        const extraUnits = minutesToUnits(getRowRangeMinutes(row, item.start.value, item.end.value));
+        const extraUnits = minutesToUnits(detail?.ranges[itemIndex + 1]?.minutes || 0);
         lines.push(`   + ${extraStart}-${extraEnd} | ${formatUnits(extraUnits)}`);
       });
     });
@@ -1714,22 +1813,23 @@ async function createSharePdf() {
 
 function updateTotals() {
   normalizeRowsLanguage();
-  const rowMinutes = state.rows.map(getRowMinutes);
+  const rowDetails = getRowsCalculation();
+  const rowMinutes = rowDetails.map((detail) => detail.minutes);
   const rowUnits = rowMinutes.map(minutesToUnits);
-  const summary = getTotalsSummary(rowMinutes);
+  const summary = getTotalsSummary(rowDetails);
   const totalUnits = minutesToUnits(summary.totalMinutes);
 
   state.rows.forEach((row, index) => {
     row.duration.textContent = formatUnits(rowUnits[index] || 0);
-    (row.extraTimes || []).forEach((item) => {
-      const itemUnits = minutesToUnits(getRowRangeMinutes(row, item.start.value, item.end.value));
+    (row.extraTimes || []).forEach((item, itemIndex) => {
+      const itemUnits = minutesToUnits(rowDetails[index]?.ranges[itemIndex + 1]?.minutes || 0);
       item.duration.textContent = formatUnits(itemUnits);
     });
   });
 
   elements.shiftWindow.textContent = getShiftWindowText();
   elements.totalTime.textContent = formatUnits(totalUnits);
-  elements.sheetPreview.textContent = buildPreview(rowUnits, summary);
+  elements.sheetPreview.textContent = buildPreview(rowDetails, summary);
   fitSheetPreviewText();
 
   updateMoveButtons();
@@ -2001,8 +2101,7 @@ function addPlaceRow() {
 }
 
 function addTimeOffRow() {
-  const rowMinutes = state.rows.map(getRowMinutes);
-  const summary = getTotalsSummary(rowMinutes);
+  const summary = getTotalsSummary(getRowsCalculation());
   const missingMinutes = Math.max(0, getPlannedDayMinutes() - summary.totalMinutes);
   const availableMinutes = Math.max(0, getAccumulatedExtraMinutes());
   const timeOffMinutes = Math.min(missingMinutes, availableMinutes);
