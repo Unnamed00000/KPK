@@ -374,7 +374,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.33";
+const APP_VERSION = "1.4.34";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1604,6 +1604,7 @@ function buildPreview(rowDetails, summary) {
 
   const filledRows = state.rows.filter((row) => row.type !== "pause" && (row.place.value || row.series.value || row.start.value || row.end.value));
   let totalLineIndent = 0;
+  let finalSeparatorLength = 32;
   if (filledRows.length === 0) {
     lines.push(t("noRows"));
   } else {
@@ -1680,6 +1681,7 @@ function buildPreview(rowDetails, summary) {
     );
     totalLineIndent = Math.max(0, durationColumn - t("total").length - 3);
     const separatorLength = Math.max(32, durationColumn + 5);
+    finalSeparatorLength = separatorLength;
     workLines.forEach((line) => {
       if (line.type === "separator") {
         lines.push("-".repeat(separatorLength));
@@ -1699,7 +1701,7 @@ function buildPreview(rowDetails, summary) {
   }
 
   lines.push("");
-  lines.push("____________________________");
+  lines.push("_".repeat(finalSeparatorLength));
   lines.push(`${" ".repeat(totalLineIndent)}${t("total")} | ${formatUnits(totalUnits)}`);
 
   return lines.join("\n");
