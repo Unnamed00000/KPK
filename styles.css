@@ -1241,16 +1241,34 @@ button:focus-visible {
 .work-row.time-off-row .duration-output,
 .work-row.sick-row input,
 .work-row.sick-row .duration-output {
-  background: #eef4ff;
+  background: var(--panel);
 }
 
 .work-row.time-off-row .duration-output {
   color: #1d62bb;
 }
 
+.work-row.sick-row input,
 .work-row.sick-row .place-input,
+.work-row.sick-row .time-input,
 .work-row.sick-row .duration-output {
   color: var(--warn);
+}
+
+.work-row.sick-row input,
+.work-row.sick-row .duration-output {
+  border-color: rgba(164, 71, 36, 0.38);
+}
+
+:root[data-theme="dark"] .work-row.time-off-row .duration-output {
+  color: #8bbcff;
+}
+
+:root[data-theme="dark"] .work-row.sick-row input,
+:root[data-theme="dark"] .work-row.sick-row .duration-output {
+  background: #211816;
+  color: #ffac8f;
+  border-color: rgba(226, 139, 88, 0.48);
 }
 
 .text-button,
