@@ -450,7 +450,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.50";
+const APP_VERSION = "1.4.51";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1268,6 +1268,20 @@ function getEntrySickMinutes(saved = {}) {
   return getSavedSickMinutes(saved);
 }
 
+function hasSavedNonSickRows(saved = {}) {
+  if (!Array.isArray(saved.rows)) {
+    return false;
+  }
+
+  return saved.rows.some((row) => row?.type !== "pause" && row?.type !== "sick" && (
+    row?.place
+    || row?.series
+    || row?.start
+    || row?.end
+    || (Array.isArray(row?.extraTimes) && row.extraTimes.length > 0)
+  ));
+}
+
 function getEntryOverModeMinutes(dateKey, saved = getSavedEntry(dateKey)) {
   const date = parseDateKey(dateKey);
   const dayNumber = saved.dayNumber || getWorkDayNumber(date);
@@ -1521,7 +1535,9 @@ function renderCalendar() {
       if (dateKey === todayKey) {
         button.classList.add("is-today");
       }
-      if (isSaved) {
+      const hasSick = getEntrySickMinutes(saved) > 0;
+      const hasEntryDot = hasSick ? hasSavedNonSickRows(saved) : isSaved;
+      if (hasEntryDot) {
         button.classList.add("has-entry");
       }
       if (getEntryOverModeMinutes(dateKey, saved) > 0) {
@@ -1530,7 +1546,7 @@ function renderCalendar() {
       if (getEntryTimeOffMinutes(saved) > 0) {
         button.classList.add("has-time-off");
       }
-      if (getEntrySickMinutes(saved) > 0) {
+      if (hasSick) {
         button.classList.add("has-sick");
         const sickMark = document.createElement("span");
         sickMark.className = "calendar-sick-mark";
@@ -1538,10 +1554,16 @@ function renderCalendar() {
         button.appendChild(sickMark);
       }
 
-      if (button.classList.contains("has-entry") || button.classList.contains("has-extra") || button.classList.contains("has-time-off")) {
+      if (hasSick && button.classList.contains("has-entry")) {
+        const dot = document.createElement("span");
+        dot.className = "calendar-dot is-green is-side";
+        button.appendChild(dot);
+      }
+
+      if ((!hasSick && button.classList.contains("has-entry")) || button.classList.contains("has-extra") || button.classList.contains("has-time-off")) {
         const dots = document.createElement("span");
         dots.className = "calendar-dots";
-        if (button.classList.contains("has-entry")) {
+        if (!hasSick && button.classList.contains("has-entry")) {
           const dot = document.createElement("span");
           dot.className = "calendar-dot is-green";
           dots.appendChild(dot);

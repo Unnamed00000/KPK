@@ -784,13 +784,20 @@ textarea {
   background: #e5b82e;
 }
 
+.calendar-dot.is-side {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-50%);
+}
+
 .calendar-sick-mark {
   position: absolute;
-  bottom: 17px;
+  bottom: 8px;
   left: 50%;
   z-index: 1;
   color: #c63f2a;
-  font-size: 0.52rem;
+  font-size: 0.56rem;
   font-weight: 900;
   line-height: 1;
   text-transform: lowercase;
