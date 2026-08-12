@@ -788,8 +788,14 @@ textarea {
 
 .day-action-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+}
+
+.day-action-buttons .text-button {
+  min-width: 0;
+  padding: 0 8px;
+  font-size: clamp(0.72rem, 3vw, 0.9rem);
 }
 
 /* Keep the calendar landing screen within a typical desktop viewport. */

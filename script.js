@@ -35,9 +35,13 @@ const I18N = {
     legendToday: "Зелена рамка: сьогоднішня дата.",
     dayActions: "Дії з датою",
     moveDay: "Перемістити",
+    copyDay: "Копіювати",
     clearDay: "Очистити",
     moveToDate: "Перемістити на дату",
+    copyToDate: "Копіювати на дату",
+    targetDateFilled: "Ця дата вже заповнена",
     dayMoved: "День переміщено",
+    dayCopied: "День скопійовано",
     dayCleared: "День очищено",
     addPause: "+ Пауза",
     addMeeting: "+ Зустріч",
@@ -134,9 +138,13 @@ const I18N = {
     legendToday: "Grøn kant: dags dato.",
     dayActions: "Dato handlinger",
     moveDay: "Flyt",
+    copyDay: "Kopier",
     clearDay: "Ryd",
     moveToDate: "Flyt til dato",
+    copyToDate: "Kopier til dato",
+    targetDateFilled: "Datoen er allerede udfyldt",
     dayMoved: "Dagen er flyttet",
+    dayCopied: "Dagen er kopieret",
     dayCleared: "Dagen er ryddet",
     addPause: "+ Pause",
     addMeeting: "+ Møde",
@@ -233,9 +241,13 @@ const I18N = {
     legendToday: "Green outline: today.",
     dayActions: "Date actions",
     moveDay: "Move",
+    copyDay: "Copy",
     clearDay: "Clear",
     moveToDate: "Move to date",
+    copyToDate: "Copy to date",
+    targetDateFilled: "That date is already filled",
     dayMoved: "Day moved",
+    dayCopied: "Day copied",
     dayCleared: "Day cleared",
     addPause: "+ Pause",
     addMeeting: "+ Meeting",
@@ -332,9 +344,13 @@ const I18N = {
     legendToday: "Green outline: today.",
     dayActions: "Date actions",
     moveDay: "Move",
+    copyDay: "Copy",
     clearDay: "Clear",
     moveToDate: "Move to date",
+    copyToDate: "Copy to date",
+    targetDateFilled: "That date is already filled",
     dayMoved: "Day moved",
+    dayCopied: "Day copied",
     dayCleared: "Day cleared",
     addPause: "+ استراحة",
     addMeeting: "+ اجتماع",
@@ -398,7 +414,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.38";
+const APP_VERSION = "1.4.39";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -433,6 +449,7 @@ const state = {
   workMode: "variable",
   selectedDate: "",
   actionDate: "",
+  dayActionMode: "",
   suppressNextCalendarClick: false,
   calendarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   isLoading: false
@@ -453,6 +470,7 @@ const elements = {
   dayMoveControls: document.querySelector("#dayMoveControls"),
   moveDateInput: document.querySelector("#moveDateInput"),
   moveDayButton: document.querySelector("#moveDayButton"),
+  copyDayButton: document.querySelector("#copyDayButton"),
   clearDayButton: document.querySelector("#clearDayButton"),
   accumulatedExtraTime: document.querySelector("#accumulatedExtraTime"),
   prevMonthButton: document.querySelector("#prevMonthButton"),
@@ -693,6 +711,7 @@ function setDayActionPanelOpen(isOpen, dateKey = state.actionDate) {
   }
 
   state.actionDate = isOpen ? dateKey : "";
+  state.dayActionMode = "";
   elements.dayActionPanel.hidden = !isOpen;
   if (elements.dayMoveControls) {
     elements.dayMoveControls.hidden = true;
@@ -710,6 +729,19 @@ function setDayActionPanelOpen(isOpen, dateKey = state.actionDate) {
   }
 }
 
+function setDayMoveMode(mode) {
+  state.dayActionMode = mode;
+  if (elements.dayMoveControls) {
+    elements.dayMoveControls.hidden = false;
+  }
+  const label = elements.dayMoveControls?.querySelector("[data-i18n]");
+  if (label) {
+    label.dataset.i18n = mode === "copy" ? "copyToDate" : "moveToDate";
+    label.textContent = t(label.dataset.i18n);
+  }
+  elements.moveDateInput?.focus();
+}
+
 function clearDayEntry(dateKey = state.actionDate) {
   if (!dateKey) {
     return;
@@ -725,7 +757,21 @@ function clearDayEntry(dateKey = state.actionDate) {
   playFeedback();
 }
 
-function moveDayEntry(fromDateKey = state.actionDate, toDateKey = elements.moveDateInput?.value) {
+function buildMovedDayData(saved, toDateKey) {
+  const targetDate = parseDateKey(toDateKey);
+  if (Number.isNaN(targetDate.getTime())) {
+    return null;
+  }
+
+  return {
+    ...saved,
+    date: toDateKey,
+    weekNumber: getIsoWeek(targetDate),
+    dayNumber: getWorkDayNumber(targetDate)
+  };
+}
+
+function copyOrMoveDayEntry(mode = state.dayActionMode || "move", fromDateKey = state.actionDate, toDateKey = elements.moveDateInput?.value) {
   if (!fromDateKey || !toDateKey || fromDateKey === toDateKey) {
     return;
   }
@@ -736,20 +782,24 @@ function moveDayEntry(fromDateKey = state.actionDate, toDateKey = elements.moveD
     return;
   }
 
-  const targetDate = parseDateKey(toDateKey);
-  if (Number.isNaN(targetDate.getTime())) {
+  if (hasSavedEntry(toDateKey)) {
+    if (elements.dayActionDate) {
+      elements.dayActionDate.textContent = t("targetDateFilled");
+    }
     return;
   }
-  const moved = {
-    ...saved,
-    date: toDateKey,
-    weekNumber: getIsoWeek(targetDate),
-    dayNumber: getWorkDayNumber(targetDate)
-  };
+
+  const moved = buildMovedDayData(saved, toDateKey);
+  if (!moved) {
+    return;
+  }
+  const targetDate = parseDateKey(toDateKey);
 
   localStorage.setItem(getDateStorageKey(toDateKey), JSON.stringify(moved));
-  localStorage.removeItem(getDateStorageKey(fromDateKey));
-  if (state.selectedDate === fromDateKey) {
+  if (mode === "move") {
+    localStorage.removeItem(getDateStorageKey(fromDateKey));
+  }
+  if (state.selectedDate === fromDateKey && mode === "move") {
     state.selectedDate = toDateKey;
   }
   state.calendarMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
@@ -2638,14 +2688,23 @@ elements.closeDayActionButton?.addEventListener("click", () => {
 });
 
 elements.moveDayButton?.addEventListener("click", () => {
-  if (elements.dayMoveControls?.hidden) {
-    elements.dayMoveControls.hidden = false;
-    elements.moveDateInput?.focus();
+  if (elements.dayMoveControls?.hidden || state.dayActionMode !== "move") {
+    setDayMoveMode("move");
     playFeedback();
     return;
   }
 
-  moveDayEntry();
+  copyOrMoveDayEntry("move");
+});
+
+elements.copyDayButton?.addEventListener("click", () => {
+  if (elements.dayMoveControls?.hidden || state.dayActionMode !== "copy") {
+    setDayMoveMode("copy");
+    playFeedback();
+    return;
+  }
+
+  copyOrMoveDayEntry("copy");
 });
 
 elements.clearDayButton?.addEventListener("click", () => {
