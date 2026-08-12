@@ -1014,6 +1014,31 @@ button:focus-visible {
   border-top: 1px dashed var(--line);
 }
 
+.extra-total-row {
+  min-height: 38px;
+  align-items: center;
+  padding-top: 0;
+}
+
+.extra-total-label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.extra-total-output {
+  min-height: 34px;
+  background: #e7f5ed;
+  color: #14633f;
+  font-weight: 900;
+}
+
+:root[data-theme="dark"] .extra-total-output {
+  background: #153b29;
+  color: #c8f5da;
+}
+
 .extra-time-spacer {
   min-height: 1px;
 }

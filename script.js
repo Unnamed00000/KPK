@@ -374,7 +374,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.26";
+const APP_VERSION = "1.4.27";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1623,7 +1623,10 @@ function buildPreview(rowDetails, summary) {
         rowParts.push(`${t("series")} ${series}`);
       }
 
-      rowParts.push(`${start}-${end}`, formatUnits(minutesToUnits(detail?.minutes || 0)));
+      const mainUnits = minutesToUnits(detail?.ranges[0]?.minutes || 0);
+      const rowTotalUnits = minutesToUnits(detail?.minutes || 0);
+      const hasExtraTimes = (row.extraTimes || []).length > 0;
+      rowParts.push(`${start}-${end}`, formatUnits(hasExtraTimes ? mainUnits : rowTotalUnits));
       lines.push(rowParts.join(" | "));
 
       (row.extraTimes || []).forEach((item, itemIndex) => {
@@ -1632,6 +1635,9 @@ function buildPreview(rowDetails, summary) {
         const extraUnits = minutesToUnits(detail?.ranges[itemIndex + 1]?.minutes || 0);
         lines.push(`   + ${extraStart}-${extraEnd} | ${formatUnits(extraUnits)}`);
       });
+      if (hasExtraTimes) {
+        lines.push(`   ${t("total")}: ${formatUnits(rowTotalUnits)}`);
+      }
     });
   }
 
@@ -1820,7 +1826,13 @@ function updateTotals() {
   const totalUnits = minutesToUnits(summary.totalMinutes);
 
   state.rows.forEach((row, index) => {
-    row.duration.textContent = formatUnits(rowUnits[index] || 0);
+    const hasExtraTimes = (row.extraTimes || []).length > 0;
+    const mainUnits = minutesToUnits(rowDetails[index]?.ranges[0]?.minutes || 0);
+    row.duration.textContent = formatUnits(hasExtraTimes ? mainUnits : (rowUnits[index] || 0));
+    if (row.extraTotal && row.extraTotalValue) {
+      row.extraTotal.hidden = !hasExtraTimes;
+      row.extraTotalValue.textContent = formatUnits(rowUnits[index] || 0);
+    }
     (row.extraTimes || []).forEach((item, itemIndex) => {
       const itemUnits = minutesToUnits(rowDetails[index]?.ranges[itemIndex + 1]?.minutes || 0);
       item.duration.textContent = formatUnits(itemUnits);
@@ -1926,7 +1938,7 @@ function addExtraTime(row, values = {}, options = {}) {
   item.moveDown.addEventListener("click", () => moveExtraTime(row, item, 1));
 
   row.extraTimes.push(item);
-  row.extraTimesContainer.appendChild(element);
+  row.extraTimesContainer.insertBefore(element, row.extraTotal);
   applyLanguageText(element);
 
   if (!options.skipUpdate) {
@@ -2052,6 +2064,8 @@ function addRow(values = {}) {
     remove: rowElement.querySelector(".remove-button"),
     addSegment: rowElement.querySelector(".add-segment-button"),
     extraTimesContainer: document.createElement("div"),
+    extraTotal: document.createElement("div"),
+    extraTotalValue: document.createElement("output"),
     extraTimes: [],
     type: values.type ?? "work"
   };
@@ -2071,7 +2085,23 @@ function addRow(values = {}) {
 
   applyRowType(row);
   row.extraTimesContainer.className = "extra-times";
+  row.extraTotal.className = "work-row extra-total-row";
+  row.extraTotal.hidden = true;
+  row.extraTotal.innerHTML = `
+    <div class="extra-time-spacer"></div>
+    <div class="extra-time-spacer"></div>
+    <div class="extra-time-spacer"></div>
+    <div class="extra-total-label" data-i18n="total">I alt</div>
+  `;
+  row.extraTotalValue.className = "duration-output extra-total-output";
+  row.extraTotalValue.textContent = "0,00";
+  row.extraTotal.appendChild(row.extraTotalValue);
+  row.extraTotal.insertAdjacentHTML("beforeend", `
+    <div class="extra-time-spacer"></div>
+    <div class="extra-time-spacer"></div>
+  `);
   rowElement.appendChild(row.extraTimesContainer);
+  row.extraTimesContainer.appendChild(row.extraTotal);
   attachRowEvents(row);
   state.rows.push(row);
   elements.rows.appendChild(rowElement);
