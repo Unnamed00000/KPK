@@ -33,6 +33,7 @@ const I18N = {
     legendNormal: "Помаранчева N: normal arbejdstid.",
     legendVariable: "Помаранчева V: variable arbejdstid.",
     legendToday: "Зелена рамка: сьогоднішня дата.",
+    legendHoldDate: "Утримуйте заповнену дату, щоб скопіювати, перемістити або очистити день. Копіювання і переміщення працюють тільки на порожню дату.",
     dayActions: "Дії з датою",
     moveDay: "Перемістити",
     copyDay: "Копіювати",
@@ -139,6 +140,7 @@ const I18N = {
     legendNormal: "Orange N: normal arbejdstid.",
     legendVariable: "Orange V: variable arbejdstid.",
     legendToday: "Grøn kant: dags dato.",
+    legendHoldDate: "Hold på en udfyldt dato for at kopiere, flytte eller rydde dagen. Kopier og flyt virker kun til en tom dato.",
     dayActions: "Dato handlinger",
     moveDay: "Flyt",
     copyDay: "Kopier",
@@ -245,6 +247,7 @@ const I18N = {
     legendNormal: "Orange N: normal work time.",
     legendVariable: "Orange V: variable work time.",
     legendToday: "Green outline: today.",
+    legendHoldDate: "Hold a filled date to copy, move, or clear the day. Copy and move only work to an empty date.",
     dayActions: "Date actions",
     moveDay: "Move",
     copyDay: "Copy",
@@ -351,6 +354,7 @@ const I18N = {
     legendNormal: "Orange N: normal work time.",
     legendVariable: "Orange V: variable work time.",
     legendToday: "Green outline: today.",
+    legendHoldDate: "Hold a filled date to copy, move, or clear the day. Copy and move only work to an empty date.",
     dayActions: "Date actions",
     moveDay: "Move",
     copyDay: "Copy",
@@ -426,7 +430,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.42";
+const APP_VERSION = "1.4.43";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
