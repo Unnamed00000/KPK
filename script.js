@@ -464,7 +464,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.55";
+const APP_VERSION = "1.4.56";
 const TEST_TODAY = "2026-08-17";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";

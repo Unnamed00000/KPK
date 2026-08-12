@@ -588,6 +588,10 @@ textarea {
   white-space: nowrap;
 }
 
+.payroll-panel article[hidden] {
+  display: none;
+}
+
 .payroll-panel article:first-child {
   justify-content: space-between;
 }
