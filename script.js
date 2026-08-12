@@ -374,7 +374,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.29";
+const APP_VERSION = "1.4.30";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1633,10 +1633,22 @@ function buildPreview(rowDetails, summary) {
         const extraStart = item.start.value || "__:__";
         const extraEnd = item.end.value || "__:__";
         const extraUnits = minutesToUnits(detail?.ranges[itemIndex + 1]?.minutes || 0);
-        lines.push(`   + ${extraStart}-${extraEnd} | ${formatUnits(extraUnits)}`);
+        const extraParts = [`${index + 1}.${itemIndex + 2}. ${place}`];
+
+        if (isMeetingRow(row)) {
+          extraParts.push(series);
+        } else if (!isPlaceOnlyRow(row) && !isTimeOffRow(row)) {
+          extraParts.push(`${t("series")} ${series}`);
+        }
+
+        extraParts.push(`${extraStart}-${extraEnd}`, formatUnits(extraUnits));
+        lines.push(extraParts.join(" | "));
       });
       if (hasExtraTimes) {
         lines.push(`   ${t("total")}: ${formatUnits(rowTotalUnits)}`);
+      }
+      if (index < filledRows.length - 1) {
+        lines.push("--------------------------------");
       }
     });
   }
