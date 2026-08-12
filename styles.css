@@ -781,6 +781,14 @@ textarea {
   font-weight: 800;
 }
 
+.day-clear-confirm {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .day-action-move label {
   display: grid;
   gap: 6px;
@@ -803,10 +811,17 @@ textarea {
   grid-template-columns: 1fr;
 }
 
+#dayActionPanel[data-mode="clear"] .day-action-buttons {
+  grid-template-columns: 1fr 1fr;
+}
+
 #dayActionPanel[data-mode="copy"] #moveDayButton,
 #dayActionPanel[data-mode="copy"] #clearDayButton,
 #dayActionPanel[data-mode="move"] #copyDayButton,
-#dayActionPanel[data-mode="move"] #clearDayButton {
+#dayActionPanel[data-mode="move"] #clearDayButton,
+#dayActionPanel[data-mode="clear"] #moveDayButton,
+#dayActionPanel[data-mode="clear"] #copyDayButton,
+#dayActionPanel[data-mode="clear"] #clearDayButton {
   display: none;
 }
 

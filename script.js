@@ -37,6 +37,9 @@ const I18N = {
     moveDay: "Перемістити",
     copyDay: "Копіювати",
     clearDay: "Очистити",
+    clearDayConfirm: "Ви впевнені, що хочете очистити цей день?",
+    yes: "Так",
+    no: "Ні",
     moveToDate: "Перемістити на дату",
     copyToDate: "Копіювати на дату",
     targetDateFilled: "Ця дата вже заповнена",
@@ -140,6 +143,9 @@ const I18N = {
     moveDay: "Flyt",
     copyDay: "Kopier",
     clearDay: "Ryd",
+    clearDayConfirm: "Er du sikker på, at du vil rydde denne dag?",
+    yes: "Ja",
+    no: "Nej",
     moveToDate: "Flyt til dato",
     copyToDate: "Kopier til dato",
     targetDateFilled: "Datoen er allerede udfyldt",
@@ -243,6 +249,9 @@ const I18N = {
     moveDay: "Move",
     copyDay: "Copy",
     clearDay: "Clear",
+    clearDayConfirm: "Are you sure you want to clear this day?",
+    yes: "Yes",
+    no: "No",
     moveToDate: "Move to date",
     copyToDate: "Copy to date",
     targetDateFilled: "That date is already filled",
@@ -346,6 +355,9 @@ const I18N = {
     moveDay: "Move",
     copyDay: "Copy",
     clearDay: "Clear",
+    clearDayConfirm: "Are you sure you want to clear this day?",
+    yes: "Yes",
+    no: "No",
     moveToDate: "Move to date",
     copyToDate: "Copy to date",
     targetDateFilled: "That date is already filled",
@@ -414,7 +426,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.40";
+const APP_VERSION = "1.4.41";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -472,6 +484,9 @@ const elements = {
   moveDayButton: document.querySelector("#moveDayButton"),
   copyDayButton: document.querySelector("#copyDayButton"),
   clearDayButton: document.querySelector("#clearDayButton"),
+  confirmClearDayButton: document.querySelector("#confirmClearDayButton"),
+  cancelClearDayButton: document.querySelector("#cancelClearDayButton"),
+  dayClearConfirm: document.querySelector("#dayClearConfirm"),
   accumulatedExtraTime: document.querySelector("#accumulatedExtraTime"),
   prevMonthButton: document.querySelector("#prevMonthButton"),
   nextMonthButton: document.querySelector("#nextMonthButton"),
@@ -717,6 +732,15 @@ function setDayActionPanelOpen(isOpen, dateKey = state.actionDate) {
   if (elements.dayMoveControls) {
     elements.dayMoveControls.hidden = true;
   }
+  if (elements.dayClearConfirm) {
+    elements.dayClearConfirm.hidden = true;
+  }
+  if (elements.confirmClearDayButton) {
+    elements.confirmClearDayButton.hidden = true;
+  }
+  if (elements.cancelClearDayButton) {
+    elements.cancelClearDayButton.hidden = true;
+  }
   if (elements.dayActionDate) {
     elements.dayActionDate.textContent = isOpen ? formatDisplayDate(parseDateKey(dateKey)) : "";
   }
@@ -744,6 +768,26 @@ function setDayMoveMode(mode) {
     label.textContent = t(label.dataset.i18n);
   }
   elements.moveDateInput?.focus();
+}
+
+function setDayClearConfirmMode() {
+  state.dayActionMode = "clear";
+  if (elements.dayActionPanel) {
+    elements.dayActionPanel.dataset.mode = "clear";
+  }
+  if (elements.dayMoveControls) {
+    elements.dayMoveControls.hidden = true;
+  }
+  if (elements.dayClearConfirm) {
+    elements.dayClearConfirm.hidden = false;
+  }
+  if (elements.confirmClearDayButton) {
+    elements.confirmClearDayButton.hidden = false;
+    elements.confirmClearDayButton.focus();
+  }
+  if (elements.cancelClearDayButton) {
+    elements.cancelClearDayButton.hidden = false;
+  }
 }
 
 function clearDayEntry(dateKey = state.actionDate) {
@@ -2712,7 +2756,17 @@ elements.copyDayButton?.addEventListener("click", () => {
 });
 
 elements.clearDayButton?.addEventListener("click", () => {
+  setDayClearConfirmMode();
+  playFeedback();
+});
+
+elements.confirmClearDayButton?.addEventListener("click", () => {
   clearDayEntry();
+});
+
+elements.cancelClearDayButton?.addEventListener("click", () => {
+  setDayActionPanelOpen(true, state.actionDate);
+  playFeedback();
 });
 
 elements.settingsPanel?.addEventListener("click", (event) => {
