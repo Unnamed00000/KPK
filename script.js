@@ -472,7 +472,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.60";
+const APP_VERSION = "1.4.61";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -1198,7 +1198,7 @@ function getSavedMeetingWindows(savedRows, exceptRow = null) {
     .filter(Boolean);
 }
 
-function getSavedRangePieces(row, range, savedRows, countedWindows) {
+function getSavedRangePieces(row, range, savedRows, countedWindows, extraExcludedWindows = []) {
   if (row?.type === "pause") {
     const pauseWindow = getTimeWindow(range.start, range.end);
     return pauseWindow ? [pauseWindow] : [];
@@ -1208,21 +1208,29 @@ function getSavedRangePieces(row, range, savedRows, countedWindows) {
   if (!isSavedMeetingRow(row)) {
     excludedWindows.push(...getSavedMeetingWindows(savedRows, row));
   }
+  excludedWindows.push(...extraExcludedWindows);
   excludedWindows.push(...countedWindows);
 
   return subtractWindows(getTimeWindow(range.start, range.end), excludedWindows);
 }
 
-function getSavedTotalCountedMinutes(saved = {}) {
+function getSavedCountedMinutes(saved = {}, options = {}) {
   if (!Array.isArray(saved.rows)) {
     return 0;
   }
 
-  const savedRows = saved.rows.filter((row) => row?.type !== "pause");
+  const excludeTypes = new Set(options.excludeTypes || []);
+  const extraExcludedTypes = new Set(options.extraExcludedTypes || []);
+  const extraExcludedWindows = saved.rows
+    .filter((row) => extraExcludedTypes.has(row?.type))
+    .flatMap((row) => getSavedRowRanges(row))
+    .map((range) => getTimeWindow(range.start, range.end))
+    .filter(Boolean);
+  const savedRows = saved.rows.filter((row) => row?.type !== "pause" && !excludeTypes.has(row?.type));
   const countedWindows = [];
   return savedRows.reduce((total, row) => {
     const rowMinutes = getSavedRowRanges(row).reduce((sum, range) => {
-      const pieces = getSavedRangePieces(row, range, savedRows, countedWindows);
+      const pieces = getSavedRangePieces(row, range, savedRows, countedWindows, extraExcludedWindows);
       if (row?.type !== "pause") {
         countedWindows.push(...pieces);
       }
@@ -1230,6 +1238,17 @@ function getSavedTotalCountedMinutes(saved = {}) {
     }, 0);
     return total + rowMinutes;
   }, 0);
+}
+
+function getSavedTotalCountedMinutes(saved = {}) {
+  return getSavedCountedMinutes(saved);
+}
+
+function getSavedWorkedMinutesForExtra(saved = {}) {
+  return getSavedCountedMinutes(saved, {
+    excludeTypes: ["timeOff", "sick"],
+    extraExcludedTypes: ["timeOff", "sick"]
+  });
 }
 
 function getEntryWorkMode(dateKey, saved = getSavedEntry(dateKey)) {
@@ -1287,14 +1306,14 @@ function addCountedMinutesSkippingPauses(startValue, countedMinutes) {
 function getEntryExtraMinutes(dateKey, saved = getSavedEntry(dateKey)) {
   const date = parseDateKey(dateKey);
   const dayNumber = saved.dayNumber || getWorkDayNumber(date);
-  const normalEnd = parseTimeToMinutes(getNormalShiftEnd(dayNumber));
-  if (normalEnd === null || !Array.isArray(saved.rows)) {
+  if (!Array.isArray(saved.rows)) {
     return 0;
   }
 
-  const latestEnd = getSavedLatestEndMinutes(saved, normalEnd);
+  const normalMinutes = getPlannedDayMinutesForMode("normal", dayNumber);
+  const workedMinutes = getSavedWorkedMinutesForExtra(saved);
 
-  return Math.max(0, latestEnd - normalEnd);
+  return Math.max(0, workedMinutes - normalMinutes);
 }
 
 function getEntryTimeOffMinutes(saved = {}) {
@@ -1333,8 +1352,8 @@ function getEntryOverModeMinutes(dateKey, saved = getSavedEntry(dateKey)) {
   }
 
   const plannedMinutes = getPlannedDayMinutesForMode(mode, dayNumber);
-  const countedMinutes = getSavedTotalCountedMinutes(saved);
-  return Math.max(0, countedMinutes - plannedMinutes);
+  const workedMinutes = getSavedWorkedMinutesForExtra(saved);
+  return Math.max(0, workedMinutes - plannedMinutes);
 }
 
 function getAccumulatedExtraMinutes() {
