@@ -28,7 +28,9 @@ const I18N = {
     accumulatedExtra: "Afspadsering",
     payPeriod: "Період зарплати",
     payDate: "Виплата",
-    payTime: "Години",
+    payTime: "Роб. години",
+    sickTime: "Лікарняні",
+    payTotal: "Разом",
     calendarLegendTitle: "Forklaring",
     legendGreen: "Зелена точка: день заповнений.",
     legendBlue: "Синя точка: робота понад вибраний план N/V.",
@@ -138,8 +140,9 @@ const I18N = {
     accumulatedExtra: "Afspadsering",
     payPeriod: "Lønperiode",
     payDate: "Udbetaling",
-    payTime: "Timer",
-    sickTime: "Syg",
+    payTime: "Arb. timer",
+    sickTime: "Syg timer",
+    payTotal: "I alt",
     calendarLegendTitle: "Forklaring",
     legendGreen: "Grøn prik: dagen er udfyldt.",
     legendBlue: "Blå prik: der er arbejdet mere end dagens valgte N/V-plan.",
@@ -252,8 +255,9 @@ const I18N = {
     accumulatedExtra: "Afspadsering",
     payPeriod: "Pay period",
     payDate: "Pay date",
-    payTime: "Hours",
-    sickTime: "Sick",
+    payTime: "Work hours",
+    sickTime: "Sick hours",
+    payTotal: "Total",
     calendarLegendTitle: "Legend",
     legendGreen: "Green dot: the day has saved work.",
     legendBlue: "Blue dot: work is above the selected N/V plan.",
@@ -366,7 +370,9 @@ const I18N = {
     accumulatedExtra: "Afspadsering",
     payPeriod: "Pay period",
     payDate: "Pay date",
-    payTime: "Hours",
+    payTime: "Work hours",
+    sickTime: "Sick hours",
+    payTotal: "Total",
     calendarLegendTitle: "Legend",
     legendGreen: "Green dot: the day has saved work.",
     legendBlue: "Blue dot: work is above the selected N/V plan.",
@@ -450,7 +456,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.51";
+const APP_VERSION = "1.4.52";
 const DEFAULT_LANGUAGE = "da";
 const LEGACY_STORAGE_KEY = "kpk-work-sheet";
 const STORAGE_PREFIX = "kpk-work-sheet:";
@@ -501,6 +507,7 @@ const elements = {
   payDateText: document.querySelector("#payDateText"),
   payTimeText: document.querySelector("#payTimeText"),
   paySickText: document.querySelector("#paySickText"),
+  payTotalText: document.querySelector("#payTotalText"),
   calendarExtraPanel: document.querySelector("#calendarExtraPanel"),
   calendarHelpButton: document.querySelector("#calendarHelpButton"),
   calendarLegendPanel: document.querySelector("#calendarLegendPanel"),
@@ -1327,6 +1334,9 @@ function updatePayrollPanel() {
   }
   if (elements.paySickText) {
     elements.paySickText.textContent = formatUnits(minutesToUnits(payrollMinutes.sickMinutes));
+  }
+  if (elements.payTotalText) {
+    elements.payTotalText.textContent = formatUnits(minutesToUnits(payrollMinutes.paidMinutes + payrollMinutes.sickMinutes));
   }
   fitPayrollPanelText();
 }
