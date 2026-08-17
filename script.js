@@ -56,7 +56,7 @@ const I18N = {
     dayCleared: "День очищено",
     addPause: "+ Пауза",
     addMeeting: "+ Зустріч",
-    addPlace: "+ Місце",
+    addPlace: "+ Інше",
     addSeries: "+ Серія",
     addTimeOff: "+ Afsp.",
     addTimeSegment: "Додати час",
@@ -76,6 +76,7 @@ const I18N = {
     lastNamePlaceholder: "Наприклад, Ali",
     employeeNumberPlaceholder: "Номер працівника",
     seriesPlaceholder: "Номер серії",
+    placeDescriptionPlaceholder: "Назва",
     meeting: "Зустріч",
     pause: "Пауза",
     work: "Робота",
@@ -172,7 +173,7 @@ const I18N = {
     dayCleared: "Dagen er ryddet",
     addPause: "+ Pause",
     addMeeting: "+ Møde",
-    addPlace: "+ Plads",
+    addPlace: "+ Andet",
     addSeries: "+ Serie",
     addTimeOff: "+ Afsp.",
     addSick: "+ Syg",
@@ -195,6 +196,7 @@ const I18N = {
     lastNamePlaceholder: "Fx Ali",
     employeeNumberPlaceholder: "Medarbejdernr.",
     seriesPlaceholder: "Serienr.",
+    placeDescriptionPlaceholder: "Navn",
     meeting: "Møde",
     pause: "Pause",
     work: "Arbejde",
@@ -291,7 +293,7 @@ const I18N = {
     dayCleared: "Day cleared",
     addPause: "+ Pause",
     addMeeting: "+ Meeting",
-    addPlace: "+ Place",
+    addPlace: "+ Other",
     addSeries: "+ Series",
     addTimeOff: "+ Afsp.",
     addSick: "+ Sick",
@@ -314,6 +316,7 @@ const I18N = {
     lastNamePlaceholder: "For example, Ali",
     employeeNumberPlaceholder: "Employee number",
     seriesPlaceholder: "Series number",
+    placeDescriptionPlaceholder: "Name",
     meeting: "Meeting",
     pause: "Pause",
     work: "Work",
@@ -410,7 +413,7 @@ const I18N = {
     dayCleared: "Day cleared",
     addPause: "+ استراحة",
     addMeeting: "+ اجتماع",
-    addPlace: "+ مكان",
+    addPlace: "+ Other",
     addSeries: "+ سلسلة",
     addTimeOff: "+ Afsp.",
     addTimeSegment: "إضافة وقت",
@@ -430,6 +433,7 @@ const I18N = {
     lastNamePlaceholder: "مثلا Ali",
     employeeNumberPlaceholder: "رقم الموظف",
     seriesPlaceholder: "رقم السلسلة",
+    placeDescriptionPlaceholder: "Name",
     meeting: "اجتماع",
     pause: "استراحة",
     work: "العمل",
@@ -472,7 +476,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.64";
+const APP_VERSION = "1.4.65";
 const FIREBASE_SDK_VERSION = "10.12.5";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
@@ -2365,6 +2369,10 @@ function buildPreview(rowDetails, summary) {
         rowParts[0] = `${lineNumber - 1}. ${t("timeOff")}`;
       } else if (isMeetingRow(row)) {
         rowParts.push(series);
+      } else if (isPlaceOnlyRow(row)) {
+        if (row.series.value) {
+          rowParts.push(row.series.value);
+        }
       } else if (!isPlaceOnlyRow(row)) {
         rowParts.push(`${t("series")} ${series}`);
       }
@@ -2386,6 +2394,10 @@ function buildPreview(rowDetails, summary) {
           extraParts[0] = `${lineNumber - 1}. ${t("sick")}`;
         } else if (isMeetingRow(row)) {
           extraParts.push(series);
+        } else if (isPlaceOnlyRow(row)) {
+          if (row.series.value) {
+            extraParts.push(row.series.value);
+          }
         } else if (!isPlaceOnlyRow(row) && !isTimeOffRow(row)) {
           extraParts.push(`${t("series")} ${series}`);
         }
@@ -2806,7 +2818,7 @@ function applyRowType(row) {
   row.element.classList.toggle("can-add-segment", row.type === "work");
   row.element.dataset.type = row.type;
   row.place.readOnly = isPause || isTimeOff || isSick;
-  row.series.readOnly = isPause || isPlaceOnly || isTimeOff || isSick;
+  row.series.readOnly = isPause || isTimeOff || isSick;
   row.start.type = "text";
   row.end.type = "text";
   row.start.readOnly = false;
@@ -2819,6 +2831,8 @@ function applyRowType(row) {
   if (row.addSegment) {
     row.addSegment.hidden = row.type !== "work";
   }
+
+  row.place.placeholder = isPlaceOnly ? "000" : "440";
 
   if (isPause) {
     row.place.value = t("pause");
@@ -2834,11 +2848,11 @@ function applyRowType(row) {
     row.series.placeholder = "";
     row.series.removeAttribute("data-i18n-placeholder");
   } else if (isPlaceOnly) {
-    row.series.value = "";
-    row.series.placeholder = "";
-    row.series.removeAttribute("data-i18n-placeholder");
+    row.series.setAttribute("data-i18n-placeholder", "placeDescriptionPlaceholder");
+    row.series.placeholder = t("placeDescriptionPlaceholder");
   } else {
     row.series.setAttribute("data-i18n-placeholder", "seriesPlaceholder");
+    row.series.placeholder = t("seriesPlaceholder");
   }
 }
 
@@ -2866,7 +2880,7 @@ function addRow(values = {}) {
   };
 
   row.place.value = values.place ?? (row.type === "pause" ? "-" : (row.type === "place" ? "" : (row.type === "timeOff" ? t("timeOff") : (row.type === "sick" ? t("sick") : getDefaultPlace()))));
-  row.series.value = (row.type === "place" || row.type === "timeOff" || row.type === "sick") ? "" : (values.series ?? "");
+  row.series.value = (row.type === "timeOff" || row.type === "sick") ? "" : (values.series ?? "");
   if (row.type === "work") {
     row.series.value = formatSeriesValue(row.series.value, false);
   }
