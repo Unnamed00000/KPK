@@ -472,7 +472,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.63";
+const APP_VERSION = "1.4.64";
 const FIREBASE_SDK_VERSION = "10.12.5";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
@@ -1881,6 +1881,70 @@ function formatUnits(units) {
   return `${sign}${hours},${String(hundredths).padStart(2, "0")}`;
 }
 
+function distributeUnitsByMinutes(rowDetails, totalUnits) {
+  const rangeUnits = rowDetails.map((detail) => detail.ranges.map(() => 0));
+  const rowUnits = rowDetails.map(() => 0);
+  const candidates = [];
+
+  rowDetails.forEach((detail, detailIndex) => {
+    if (detail.row.type === "pause") {
+      return;
+    }
+
+    detail.ranges.forEach((range, rangeIndex) => {
+      const minutes = Math.max(0, range.minutes || 0);
+      if (minutes <= 0) {
+        return;
+      }
+
+      candidates.push({
+        detailIndex,
+        rangeIndex,
+        minutes,
+        units: 0,
+        remainder: 0
+      });
+    });
+  });
+
+  const totalMinutes = candidates.reduce((sum, item) => sum + item.minutes, 0);
+  if (totalMinutes <= 0 || totalUnits <= 0 || candidates.length === 0) {
+    return { rowUnits, rangeUnits };
+  }
+
+  let assignedUnits = 0;
+  candidates.forEach((item) => {
+    const exactUnits = (item.minutes * totalUnits) / totalMinutes;
+    item.units = Math.floor(exactUnits);
+    item.remainder = exactUnits - item.units;
+    assignedUnits += item.units;
+  });
+
+  candidates
+    .sort((first, second) => (
+      second.remainder - first.remainder
+      || second.minutes - first.minutes
+      || first.detailIndex - second.detailIndex
+      || first.rangeIndex - second.rangeIndex
+    ));
+
+  let remainingUnits = totalUnits - assignedUnits;
+  for (let index = 0; remainingUnits > 0; index += 1) {
+    candidates[index % candidates.length].units += 1;
+    remainingUnits -= 1;
+  }
+
+  candidates.forEach((item) => {
+    rangeUnits[item.detailIndex][item.rangeIndex] = item.units;
+  });
+
+  rangeUnits.forEach((ranges, index) => {
+    rowUnits[index] = ranges.reduce((sum, units) => sum + units, 0);
+  });
+
+  return { rowUnits, rangeUnits };
+}
+
 function getDurationMinutes(start, end) {
   const startMinutes = parseTimeToMinutes(start);
   const endMinutes = parseTimeToMinutes(end);
@@ -2253,6 +2317,7 @@ function saveState() {
 
 function buildPreview(rowDetails, summary) {
   const totalUnits = minutesToUnits(summary.totalMinutes);
+  const distributedUnits = distributeUnitsByMinutes(rowDetails, totalUnits);
   const lines = [
     `${t("fullName")}: ${elements.firstName.value || "__________"}`,
     `${t("employeeNumber")}: ${elements.employeeNumber.value || "__________"} | ${t("week")}: ${elements.weekNumber.value || "__"} | ${t("day")}: ${elements.dayNumber.value} (${getDayName(elements.dayNumber.value)})`,
@@ -2304,8 +2369,8 @@ function buildPreview(rowDetails, summary) {
         rowParts.push(`${t("series")} ${series}`);
       }
 
-      const mainUnits = minutesToUnits(detail?.ranges[0]?.minutes || 0);
-      const rowTotalUnits = minutesToUnits(detail?.minutes || 0);
+      const mainUnits = distributedUnits.rangeUnits[rowIndex]?.[0] || 0;
+      const rowTotalUnits = distributedUnits.rowUnits[rowIndex] || 0;
       const hasExtraTimes = (row.extraTimes || []).length > 0;
       rowParts.push(`${start}-${end}`);
       addWorkLine(rowParts, formatUnits(hasExtraTimes ? mainUnits : rowTotalUnits));
@@ -2313,7 +2378,7 @@ function buildPreview(rowDetails, summary) {
       (row.extraTimes || []).forEach((item, itemIndex) => {
         const extraStart = item.start.value || "__:__";
         const extraEnd = item.end.value || "__:__";
-        const extraUnits = minutesToUnits(detail?.ranges[itemIndex + 1]?.minutes || 0);
+        const extraUnits = distributedUnits.rangeUnits[rowIndex]?.[itemIndex + 1] || 0;
         const extraParts = [`${lineNumber}. ${place}`];
         lineNumber += 1;
 
@@ -2543,21 +2608,21 @@ async function createSharePdf() {
 function updateTotals() {
   normalizeRowsLanguage();
   const rowDetails = getRowsCalculation();
-  const rowMinutes = rowDetails.map((detail) => detail.minutes);
-  const rowUnits = rowMinutes.map(minutesToUnits);
   const summary = getTotalsSummary(rowDetails);
   const totalUnits = minutesToUnits(summary.totalMinutes);
+  const distributedUnits = distributeUnitsByMinutes(rowDetails, totalUnits);
+  const rowUnits = distributedUnits.rowUnits;
 
   state.rows.forEach((row, index) => {
     const hasExtraTimes = (row.extraTimes || []).length > 0;
-    const mainUnits = minutesToUnits(rowDetails[index]?.ranges[0]?.minutes || 0);
+    const mainUnits = distributedUnits.rangeUnits[index]?.[0] || 0;
     row.duration.textContent = formatUnits(hasExtraTimes ? mainUnits : (rowUnits[index] || 0));
     if (row.extraTotal && row.extraTotalValue) {
       row.extraTotal.hidden = !hasExtraTimes;
       row.extraTotalValue.textContent = formatUnits(rowUnits[index] || 0);
     }
     (row.extraTimes || []).forEach((item, itemIndex) => {
-      const itemUnits = minutesToUnits(rowDetails[index]?.ranges[itemIndex + 1]?.minutes || 0);
+      const itemUnits = distributedUnits.rangeUnits[index]?.[itemIndex + 1] || 0;
       item.duration.textContent = formatUnits(itemUnits);
     });
   });
