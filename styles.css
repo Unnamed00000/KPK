@@ -1263,11 +1263,6 @@ button:focus-visible {
   color: var(--warn);
 }
 
-.work-row.place-row .series-input {
-  background: var(--panel-strong);
-  color: var(--muted);
-}
-
 .work-row.time-off-row input,
 .work-row.time-off-row .duration-output,
 .work-row.sick-row input,
