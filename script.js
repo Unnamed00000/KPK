@@ -476,7 +476,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.67";
+const APP_VERSION = "1.4.68";
 const FIREBASE_SDK_VERSION = "10.12.5";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
@@ -1652,6 +1652,7 @@ function renderCalendar() {
       button.type = "button";
       button.setAttribute("aria-label", formatDisplayDate(date));
       button.dataset.date = dateKey;
+      button.classList.add(`weekday-${date.getDay() || 7}`);
 
       const dayNumber = document.createElement("span");
       dayNumber.className = "calendar-day-number";

@@ -697,6 +697,26 @@ textarea {
   z-index: 1;
 }
 
+.calendar-day.weekday-1 .calendar-day-number {
+  color: #c89a00;
+}
+
+.calendar-day.weekday-2 .calendar-day-number {
+  color: #1f8a5b;
+}
+
+.calendar-day.weekday-3 .calendar-day-number {
+  color: #7a45c8;
+}
+
+.calendar-day.weekday-4 .calendar-day-number {
+  color: #d56a1c;
+}
+
+.calendar-day.weekday-5 .calendar-day-number {
+  color: #168ac5;
+}
+
 .calendar-mode-mark {
   position: absolute;
   top: 2px;
