@@ -476,7 +476,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.68";
+const APP_VERSION = "1.4.69";
 const FIREBASE_SDK_VERSION = "10.12.5";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
@@ -1245,6 +1245,14 @@ function isSavedMeetingRow(row) {
   return row?.type === "meeting" || String(row?.place || "").trim() === "114";
 }
 
+function isSavedPlaceOnlyRow(row) {
+  return row?.type === "place";
+}
+
+function isSavedInterruptionRow(row) {
+  return isSavedMeetingRow(row) || isSavedPlaceOnlyRow(row);
+}
+
 function getSavedRowRanges(row) {
   return [
     { start: row?.start, end: row?.end },
@@ -1255,9 +1263,9 @@ function getSavedRowRanges(row) {
   ];
 }
 
-function getSavedMeetingWindows(savedRows, exceptRow = null) {
+function getSavedInterruptionWindows(savedRows, exceptRow = null) {
   return savedRows
-    .filter((row) => row !== exceptRow && isSavedMeetingRow(row))
+    .filter((row) => row !== exceptRow && isSavedInterruptionRow(row))
     .flatMap((row) => getSavedRowRanges(row))
     .map((range) => getTimeWindow(range.start, range.end))
     .filter(Boolean);
@@ -1269,9 +1277,17 @@ function getSavedRangePieces(row, range, savedRows, countedWindows, extraExclude
     return pauseWindow ? [pauseWindow] : [];
   }
 
-  const excludedWindows = getDefaultPauseWindows();
-  if (!isSavedMeetingRow(row)) {
-    excludedWindows.push(...getSavedMeetingWindows(savedRows, row));
+  const excludedWindows = [];
+  if (isSavedInterruptionRow(row)) {
+    excludedWindows.push(...extraExcludedWindows);
+    excludedWindows.push(...countedWindows);
+    return subtractWindows(getTimeWindow(range.start, range.end), excludedWindows);
+  }
+
+  const interruptionWindows = getSavedInterruptionWindows(savedRows, row);
+  excludedWindows.push(...getEffectivePauseWindows(interruptionWindows));
+  if (row?.type === "work") {
+    excludedWindows.push(...interruptionWindows);
   }
   excludedWindows.push(...extraExcludedWindows);
   excludedWindows.push(...countedWindows);
@@ -2091,6 +2107,48 @@ function getDefaultPauseWindows() {
     .filter(Boolean);
 }
 
+function getDeferredPauseWindow(pauseWindow, blockingWindows = []) {
+  if (!pauseWindow) {
+    return null;
+  }
+
+  let cursor = pauseWindow.start;
+  let remaining = pauseWindow.end - pauseWindow.start;
+  const blocking = mergeWindows(blockingWindows).filter((window) => window.end > pauseWindow.start);
+
+  for (const window of blocking) {
+    if (window.end <= cursor) {
+      continue;
+    }
+
+    if (window.start > cursor) {
+      const availableMinutes = window.start - cursor;
+      if (availableMinutes >= remaining) {
+        return { start: pauseWindow.start, end: cursor + remaining };
+      }
+      remaining -= availableMinutes;
+      cursor = window.start;
+    }
+
+    if (window.end > cursor) {
+      cursor = window.end;
+    }
+  }
+
+  return { start: pauseWindow.start, end: cursor + remaining };
+}
+
+function getEffectivePauseWindows(blockingWindows = []) {
+  const pauseWindows = getDefaultPauseWindows();
+  if (!blockingWindows.length) {
+    return pauseWindows;
+  }
+
+  return pauseWindows
+    .map((pauseWindow) => getDeferredPauseWindow(pauseWindow, blockingWindows))
+    .filter(Boolean);
+}
+
 function moveTimeAfterPause(value) {
   const minutes = parseTimeToMinutes(value);
   if (minutes === null) {
@@ -2142,7 +2200,7 @@ function getRowUnits(row) {
 function getMeetingWindows(exceptRow = null) {
   const windows = [];
   state.rows.forEach((item) => {
-    if (item !== exceptRow && isMeetingRow(item)) {
+    if (item !== exceptRow && isInterruptionRow(item)) {
       getRowRanges(item).forEach((range) => {
         const meetingWindow = getTimeWindow(range.start, range.end);
         if (meetingWindow) {
@@ -2160,9 +2218,15 @@ function getRowRangeMinutes(row, start, end) {
     return durationMinutes;
   }
 
-  const excludedWindows = getDefaultPauseWindows();
-  if (!isMeetingRow(row)) {
-    excludedWindows.push(...getMeetingWindows(row));
+  const excludedWindows = [];
+  if (isInterruptionRow(row)) {
+    return Math.max(0, durationMinutes - getMergedOverlapMinutesForRange(start, end, excludedWindows));
+  }
+
+  const interruptionWindows = getMeetingWindows(row);
+  excludedWindows.push(...getEffectivePauseWindows(interruptionWindows));
+  if (row.type === "work") {
+    excludedWindows.push(...interruptionWindows);
   }
 
   return Math.max(0, durationMinutes - getMergedOverlapMinutesForRange(start, end, excludedWindows));
@@ -2183,9 +2247,16 @@ function getRowExcludedWindows(row, countedWindows = []) {
     return [];
   }
 
-  const excludedWindows = getDefaultPauseWindows();
-  if (!isMeetingRow(row)) {
-    excludedWindows.push(...getMeetingWindows(row));
+  const excludedWindows = [];
+  if (isInterruptionRow(row)) {
+    excludedWindows.push(...countedWindows);
+    return excludedWindows;
+  }
+
+  const interruptionWindows = getMeetingWindows(row);
+  excludedWindows.push(...getEffectivePauseWindows(interruptionWindows));
+  if (row.type === "work") {
+    excludedWindows.push(...interruptionWindows);
   }
   excludedWindows.push(...countedWindows);
   return excludedWindows;
@@ -2248,6 +2319,10 @@ function isMeetingRow(row) {
 
 function isPlaceOnlyRow(row) {
   return row.type === "place";
+}
+
+function isInterruptionRow(row) {
+  return isMeetingRow(row) || isPlaceOnlyRow(row);
 }
 
 function isTimeOffRow(row) {
