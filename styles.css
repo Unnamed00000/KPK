@@ -706,15 +706,15 @@ textarea {
 }
 
 .calendar-day.weekday-3 .calendar-day-number {
-  color: #7a45c8;
+  color: #c084fc;
 }
 
 .calendar-day.weekday-4 .calendar-day-number {
-  color: #d56a1c;
+  color: #ff8a00;
 }
 
 .calendar-day.weekday-5 .calendar-day-number {
-  color: #168ac5;
+  color: #00aaff;
 }
 
 .calendar-mode-mark {
