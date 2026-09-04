@@ -476,7 +476,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.71";
+const APP_VERSION = "1.4.72";
 const FIREBASE_SDK_VERSION = "10.12.5";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
@@ -1271,7 +1271,7 @@ function getSavedInterruptionWindows(savedRows, exceptRow = null) {
     .filter(Boolean);
 }
 
-function getSavedRangePieces(row, range, savedRows, countedWindows, extraExcludedWindows = []) {
+function getSavedRangePieces(row, range, savedRows, countedWindows, extraExcludedWindows = [], countedInterruptionWindows = []) {
   if (row?.type === "pause") {
     const pauseWindow = getTimeWindow(range.start, range.end);
     return pauseWindow ? [pauseWindow] : [];
@@ -1280,7 +1280,7 @@ function getSavedRangePieces(row, range, savedRows, countedWindows, extraExclude
   const excludedWindows = [];
   if (isSavedInterruptionRow(row)) {
     excludedWindows.push(...extraExcludedWindows);
-    excludedWindows.push(...countedWindows);
+    excludedWindows.push(...countedInterruptionWindows);
     return subtractWindows(getTimeWindow(range.start, range.end), excludedWindows);
   }
 
@@ -1309,10 +1309,13 @@ function getSavedCountedMinutes(saved = {}, options = {}) {
     .filter(Boolean);
   const savedRows = saved.rows.filter((row) => row?.type !== "pause" && !excludeTypes.has(row?.type));
   const countedWindows = [];
+  const countedInterruptionWindows = [];
   return savedRows.reduce((total, row) => {
     const rowMinutes = getSavedRowRanges(row).reduce((sum, range) => {
-      const pieces = getSavedRangePieces(row, range, savedRows, countedWindows, extraExcludedWindows);
-      if (row?.type !== "pause") {
+      const pieces = getSavedRangePieces(row, range, savedRows, countedWindows, extraExcludedWindows, countedInterruptionWindows);
+      if (isSavedInterruptionRow(row)) {
+        countedInterruptionWindows.push(...pieces);
+      } else if (row?.type !== "pause") {
         countedWindows.push(...pieces);
       }
       return sum + sumWindows(pieces);
@@ -2242,14 +2245,14 @@ function getRowRanges(row) {
   ];
 }
 
-function getRowExcludedWindows(row, countedWindows = []) {
+function getRowExcludedWindows(row, countedWindows = [], countedInterruptionWindows = []) {
   if (row.type === "pause") {
     return [];
   }
 
   const excludedWindows = [];
   if (isInterruptionRow(row)) {
-    excludedWindows.push(...countedWindows);
+    excludedWindows.push(...countedInterruptionWindows);
     return excludedWindows;
   }
 
@@ -2262,27 +2265,30 @@ function getRowExcludedWindows(row, countedWindows = []) {
   return excludedWindows;
 }
 
-function getRangeCountedPieces(row, start, end, countedWindows = []) {
+function getRangeCountedPieces(row, start, end, countedWindows = [], countedInterruptionWindows = []) {
   if (row.type === "pause") {
     const window = getTimeWindow(start, end);
     return window ? [window] : [];
   }
 
-  return subtractWindows(getTimeWindow(start, end), getRowExcludedWindows(row, countedWindows));
+  return subtractWindows(getTimeWindow(start, end), getRowExcludedWindows(row, countedWindows, countedInterruptionWindows));
 }
 
-function getRowMinutes(row, countedWindows = []) {
+function getRowMinutes(row, countedWindows = [], countedInterruptionWindows = []) {
   return getRowRanges(row).reduce((sum, range) => (
-    sum + sumWindows(getRangeCountedPieces(row, range.start, range.end, countedWindows))
+    sum + sumWindows(getRangeCountedPieces(row, range.start, range.end, countedWindows, countedInterruptionWindows))
   ), 0);
 }
 
 function getRowsCalculation() {
   const countedWindows = [];
+  const countedInterruptionWindows = [];
   return state.rows.map((row) => {
     const ranges = getRowRanges(row).map((range) => {
-      const pieces = getRangeCountedPieces(row, range.start, range.end, countedWindows);
-      if (row.type !== "pause") {
+      const pieces = getRangeCountedPieces(row, range.start, range.end, countedWindows, countedInterruptionWindows);
+      if (isInterruptionRow(row)) {
+        countedInterruptionWindows.push(...pieces);
+      } else if (row.type !== "pause") {
         countedWindows.push(...pieces);
       }
       return {
