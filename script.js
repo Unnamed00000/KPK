@@ -476,7 +476,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.72";
+const APP_VERSION = "1.4.73";
 const FIREBASE_SDK_VERSION = "10.12.5";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
@@ -1897,6 +1897,19 @@ function minutesToUnits(totalMinutes) {
   return Math.round((totalMinutes / 60) * 100);
 }
 
+function getDayTotalUnits(totalMinutes, mode = state.workMode, dayNumber = state.dayNumber) {
+  if (dayNumber !== "5") {
+    return minutesToUnits(totalMinutes);
+  }
+
+  const plannedMinutes = getPlannedDayMinutesForMode(mode, dayNumber);
+  if (totalMinutes <= plannedMinutes) {
+    return minutesToUnits(totalMinutes);
+  }
+
+  return minutesToUnits(plannedMinutes) + minutesToUnits(totalMinutes - plannedMinutes);
+}
+
 function formatUnits(units) {
   const sign = units < 0 ? "-" : "";
   const absolute = Math.abs(units);
@@ -2709,7 +2722,7 @@ function updateTotals() {
   normalizeRowsLanguage();
   const rowDetails = getRowsCalculation();
   const summary = getTotalsSummary(rowDetails);
-  const totalUnits = minutesToUnits(summary.totalMinutes);
+  const totalUnits = getDayTotalUnits(summary.totalMinutes);
   const distributedUnits = distributeUnitsByMinutes(rowDetails, totalUnits);
   const rowUnits = distributedUnits.rowUnits;
 
