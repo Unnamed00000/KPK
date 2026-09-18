@@ -476,7 +476,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.73";
+const APP_VERSION = "1.4.74";
 const FIREBASE_SDK_VERSION = "10.12.5";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
@@ -1903,11 +1903,11 @@ function getDayTotalUnits(totalMinutes, mode = state.workMode, dayNumber = state
   }
 
   const plannedMinutes = getPlannedDayMinutesForMode(mode, dayNumber);
-  if (totalMinutes <= plannedMinutes) {
-    return minutesToUnits(totalMinutes);
-  }
+  const deltaMinutes = totalMinutes - plannedMinutes;
+  const fullHours = Math.trunc(deltaMinutes / 60);
+  const remainingMinutes = deltaMinutes - fullHours * 60;
 
-  return minutesToUnits(plannedMinutes) + minutesToUnits(totalMinutes - plannedMinutes);
+  return minutesToUnits(plannedMinutes) + fullHours * 100 + minutesToUnits(remainingMinutes);
 }
 
 function formatUnits(units) {
