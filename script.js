@@ -59,8 +59,10 @@ const I18N = {
     addPlace: "+ Місце",
     addSeries: "+ Серія",
     addTimeOff: "+ Afsp.",
+    addBoardMeeting: "+ Tavlemøde",
     addTimeSegment: "Додати час",
     timeOff: "Afspadsering",
+    boardMeeting: "Tavlemøde",
     place: "Місце",
     series: "Серія",
     from: "З",
@@ -176,9 +178,11 @@ const I18N = {
     addPlace: "+ Plads",
     addSeries: "+ Serie",
     addTimeOff: "+ Afsp.",
+    addBoardMeeting: "+ Tavlemøde",
     addSick: "+ Syg",
     addTimeSegment: "Tilføj tid",
     timeOff: "Afspadsering",
+    boardMeeting: "Tavlemøde",
     sick: "Syg",
     sickMark: "syg",
     place: "Plads",
@@ -296,9 +300,11 @@ const I18N = {
     addPlace: "+ Place",
     addSeries: "+ Series",
     addTimeOff: "+ Afsp.",
+    addBoardMeeting: "+ Tavlemøde",
     addSick: "+ Sick",
     addTimeSegment: "Add time",
     timeOff: "Afspadsering",
+    boardMeeting: "Tavlemøde",
     sick: "Sick",
     sickMark: "sick",
     place: "Place",
@@ -416,8 +422,10 @@ const I18N = {
     addPlace: "+ مكان",
     addSeries: "+ سلسلة",
     addTimeOff: "+ Afsp.",
+    addBoardMeeting: "+ Tavlemøde",
     addTimeSegment: "إضافة وقت",
     timeOff: "Afspadsering",
+    boardMeeting: "Tavlemøde",
     place: "المكان",
     series: "السلسلة",
     from: "من",
@@ -476,7 +484,7 @@ const I18N = {
 };
 
 const SHIFT_START = "06:00";
-const APP_VERSION = "1.4.74";
+const APP_VERSION = "1.4.75";
 const FIREBASE_SDK_VERSION = "10.12.5";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCK09MjxU_TwPEt_oQVP-s2GVEF97gyHlI",
@@ -578,7 +586,7 @@ const elements = {
   addRowButton: document.querySelector("#addRowButton"),
   meetingButton: document.querySelector("#meetingButton"),
   placeButton: document.querySelector("#placeButton"),
-  timeOffButton: document.querySelector("#timeOffButton"),
+  boardMeetingButton: document.querySelector("#boardMeetingButton"),
   sickButton: document.querySelector("#sickButton"),
   copyButton: document.querySelector("#copyButton"),
   shareButton: document.querySelector("#shareButton"),
@@ -1597,7 +1605,7 @@ function normalizeRowsLanguage() {
       row.series.value = t("pause");
     }
     if (row.type === "meeting" || row.place.value === "114") {
-      row.series.value = t("meeting");
+      row.series.value = row.place.value.trim() === "167" ? t("boardMeeting") : t("meeting");
     }
     if (isTimeOffRow(row)) {
       row.place.value = t("timeOff");
@@ -3030,6 +3038,16 @@ function addMeetingRow() {
   });
 }
 
+function addBoardMeetingRow() {
+  addRow({
+    place: "167",
+    series: t("boardMeeting"),
+    start: getNextStartTime(),
+    end: getShiftEnd(),
+    type: "meeting"
+  });
+}
+
 function addPlaceRow() {
   addRow({
     place: "",
@@ -3413,8 +3431,8 @@ elements.placeButton.addEventListener("click", () => {
   addPlaceRow();
   playFeedback();
 });
-elements.timeOffButton.addEventListener("click", () => {
-  addTimeOffRow();
+elements.boardMeetingButton.addEventListener("click", () => {
+  addBoardMeetingRow();
   playFeedback();
 });
 elements.sickButton.addEventListener("click", () => {
